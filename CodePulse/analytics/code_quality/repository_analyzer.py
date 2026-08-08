@@ -65,7 +65,6 @@ LANGUAGE_EXTENSIONS = {
     ".hpp": "C++",
 }
 
-
 def should_exclude_directory(
     directory_path,
     repository_path
@@ -84,32 +83,33 @@ def should_exclude_directory(
         relative_path
     )
 
-    parts = relative_path.split(
-        os.sep
-    )
+    parts = relative_path.split(os.sep)
 
-    # Exclude directories such as
-    # venv, migrations, __pycache__, etc.
+    # --------------------------------
+    # Standard excluded directories
+    # --------------------------------
+
     if any(
         part in EXCLUDED_DIRECTORIES
         for part in parts
     ):
         return True
 
+    # --------------------------------
     # Exclude CodePulse's own
     # code-quality analyzer
-    for excluded_path in EXCLUDED_PATHS:
+    # --------------------------------
+
+    for index in range(len(parts) - 1):
 
         if (
-            relative_path == excluded_path
-            or relative_path.startswith(
-                excluded_path + os.sep
-            )
+            parts[index] == "analytics"
+            and
+            parts[index + 1] == "code_quality"
         ):
             return True
 
     return False
-
 
 def analyze_repository(repository_path):
     """

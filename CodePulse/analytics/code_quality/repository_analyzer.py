@@ -1,7 +1,51 @@
+
 import os
 
 from .analyzer import analyze_file
 
+
+# --------------------------------
+# Directories excluded from analysis
+# --------------------------------
+
+EXCLUDED_DIRECTORIES = {
+    ".git",
+    "venv",
+    ".venv",
+    "__pycache__",
+    "migrations",
+    "node_modules",
+    "dist",
+    "build",
+}
+
+
+# --------------------------------
+# Files excluded from analysis
+# --------------------------------
+
+EXCLUDED_FILES = {
+    "test_code_quality.py",
+}
+
+
+# --------------------------------
+# Internal CodePulse directories
+# --------------------------------
+
+EXCLUDED_PATHS = {
+    os.path.normpath(
+        os.path.join(
+            "analytics",
+            "code_quality"
+        )
+    ),
+}
+
+
+# --------------------------------
+# Supported languages
+# --------------------------------
 
 LANGUAGE_EXTENSIONS = {
     ".py": "Python",
@@ -22,14 +66,63 @@ LANGUAGE_EXTENSIONS = {
 }
 
 
+def should_exclude_directory(
+    directory_path,
+    repository_path
+):
+    """
+    Determine whether a directory should
+    be excluded from analysis.
+    """
+
+    relative_path = os.path.relpath(
+        directory_path,
+        repository_path
+    )
+
+    relative_path = os.path.normpath(
+        relative_path
+    )
+
+    parts = relative_path.split(
+        os.sep
+    )
+
+    # Exclude directories such as
+    # venv, migrations, __pycache__, etc.
+    if any(
+        part in EXCLUDED_DIRECTORIES
+        for part in parts
+    ):
+        return True
+
+    # Exclude CodePulse's own
+    # code-quality analyzer
+    for excluded_path in EXCLUDED_PATHS:
+
+        if (
+            relative_path == excluded_path
+            or relative_path.startswith(
+                excluded_path + os.sep
+            )
+        ):
+            return True
+
+    return False
+
+
 def analyze_repository(repository_path):
     """
-    Analyze all supported source files
+    Analyze supported source files
     inside a repository.
     """
 
     result = {
+
+        # --------------------------------
         # Repository-level metrics
+        # --------------------------------
+
         "files_analyzed": 0,
         "lines_of_code": 0,
         "functions": 0,
@@ -38,13 +131,22 @@ def analyze_repository(repository_path):
         "complexity": 0,
         "max_nesting": 0,
 
-        # Issues across repository
+        # --------------------------------
+        # Repository issues
+        # --------------------------------
+
         "issues": [],
 
+        # --------------------------------
         # Language statistics
+        # --------------------------------
+
         "languages": {},
 
+        # --------------------------------
         # Individual file results
+        # --------------------------------
+
         "files": [],
     }
 
@@ -60,6 +162,14 @@ def analyze_repository(repository_path):
 
         return result
 
+    if not os.path.isdir(repository_path):
+
+        result["error"] = (
+            "Repository path is not a directory."
+        )
+
+        return result
+
     # --------------------------------
     # Walk through repository
     # --------------------------------
@@ -68,22 +178,31 @@ def analyze_repository(repository_path):
         repository_path
     ):
 
-        # Ignore unnecessary directories
+        # --------------------------------
+        # Remove excluded directories
+        # --------------------------------
+
         directories[:] = [
             directory
             for directory in directories
-            if directory not in {
-                ".git",
-                "node_modules",
-                "venv",
-                ".venv",
-                "__pycache__",
-                "dist",
-                "build",
-            }
+            if not should_exclude_directory(
+                os.path.join(
+                    root,
+                    directory
+                ),
+                repository_path
+            )
         ]
 
+        # --------------------------------
+        # Process files
+        # --------------------------------
+
         for filename in files:
+
+            # Skip explicitly excluded files
+            if filename in EXCLUDED_FILES:
+                continue
 
             extension = os.path.splitext(
                 filename
@@ -111,10 +230,17 @@ def analyze_repository(repository_path):
                 language
             )
 
-            # Relative path inside repository
+            # --------------------------------
+            # Relative file path
+            # --------------------------------
+
             relative_path = os.path.relpath(
                 file_path,
                 repository_path
+            )
+
+            relative_path = os.path.normpath(
+                relative_path
             )
 
             # --------------------------------
@@ -124,34 +250,42 @@ def analyze_repository(repository_path):
             file_result = {
                 "file": relative_path,
                 "language": language,
+
                 "supported": analysis.get(
                     "supported",
                     False
                 ),
+
                 "lines_of_code": analysis.get(
                     "lines_of_code",
                     0
                 ),
+
                 "functions": analysis.get(
                     "functions",
                     0
                 ),
+
                 "classes": analysis.get(
                     "classes",
                     0
                 ),
+
                 "imports": analysis.get(
                     "imports",
                     0
                 ),
+
                 "complexity": analysis.get(
                     "complexity",
                     0
                 ),
+
                 "max_nesting": analysis.get(
                     "max_nesting",
                     0
                 ),
+
                 "issues": analysis.get(
                     "issues",
                     []
@@ -163,15 +297,16 @@ def analyze_repository(repository_path):
             )
 
             # --------------------------------
-            # Count analyzed files
+            # Only aggregate supported files
             # --------------------------------
 
-            if analysis.get(
+            if not analysis.get(
                 "supported",
                 False
             ):
+                continue
 
-                result["files_analyzed"] += 1
+            result["files_analyzed"] += 1
 
             # --------------------------------
             # Aggregate metrics
@@ -229,7 +364,10 @@ def analyze_repository(repository_path):
                 []
             ):
 
-                if isinstance(issue, dict):
+                if isinstance(
+                    issue,
+                    dict
+                ):
 
                     issue = issue.copy()
 
@@ -266,3 +404,4 @@ def analyze_repository(repository_path):
             )
 
     return result
+

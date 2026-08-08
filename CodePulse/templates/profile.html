@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Developer Profile</h2>
+
+<!-- Profile Form -->
+
+<form method="POST">
+    {% csrf_token %}
+
+```
+{{ form.as_p }}
+
+<button type="submit">
+    Save Profile
+</button>
+```
+
+</form>
+
+<!-- Repositories -->
+
+<h2>Repositories</h2>
+
+{% if repositories %}
+
+```
+<ul>
+    {% for repo in repositories %}
+        <li>
+            <strong>{{ repo.name }}</strong>
+
+            {% if repo.language %}
+                - {{ repo.language }}
+            {% endif %}
+
+            | ⭐ {{ repo.stars }}
+            | 🍴 {{ repo.forks }}
+        </li>
+    {% endfor %}
+</ul>
+```
+
+{% else %}
+
+```
+<p>No repositories found.</p>
+```
+
+{% endif %}
+
+<!-- Developer Activity -->
+
+<h2>Developer Activity</h2>
+
+{% if activity %}
+
+```
+<div>
+    <strong>Active Days</strong>
+    <p>{{ activity.active_days }}</p>
+</div>
+
+<div>
+    <strong>Pull Requests</strong>
+    <p>{{ activity.total_pull_requests }}</p>
+</div>
+
+<div>
+    <strong>Issues</strong>
+    <p>{{ activity.total_issues }}</p>
+</div>
+
+<div>
+    <strong>Consistency Score</strong>
+    <p>{{ activity.consistency_score }}</p>
+</div>
+```
+
+{% else %}
+
+```
+<p>No activity data available.</p>
+```
+
+{% endif %}
+
+<!-- Commit Analytics -->
+
+<h2>Commit Analytics</h2>
+
+{% if commit_analytics %}
+
+```
+<div>
+    <strong>Total Commits</strong>
+    <p>{{ commit_analytics.total_commits }}</p>
+</div>
+
+<div>
+    <strong>Active Days</strong>
+    <p>{{ commit_analytics.active_days }}</p>
+</div>
+
+<div>
+    <strong>Average Commits Per Day</strong>
+    <p>{{ commit_analytics.average_commits_per_day }}</p>
+</div>
+
+
+<!-- Commit Chart -->
+<h3>Commit Activity</h3>
+
+<canvas id="commitChart"></canvas>
+
+{{ commit_analytics.commit_dates|json_script:"commit-dates" }}
+{{ commit_analytics.commit_counts|json_script:"commit-counts" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const commitDates = JSON.parse(
+        document.getElementById("commit-dates").textContent
+    );
+
+    const commitCounts = JSON.parse(
+        document.getElementById("commit-counts").textContent
+    );
+
+    console.log("Commit dates:", commitDates);
+    console.log("Commit counts:", commitCounts);
+
+    const ctx = document.getElementById("commitChart");
+
+    new Chart(ctx, {
+        type: "line",
+
+        data: {
+            labels: commitDates,
+
+            datasets: [{
+                label: "Commits",
+                data: commitCounts,
+                tension: 0.3,
+                fill: false
+            }]
+        },
+
+        options: {
+            responsive: true,
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+</script>
+```
+
+{% else %}
+
+```
+<p>No commit analytics available.</p>
+```
+
+{% endif %}
+
+{% endblock %}

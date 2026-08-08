@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>GitHub Repositories</h2>
+
+<a href="{% url 'sync_github_data' %}">
+    Sync GitHub Data
+</a>
+
+{% if repositories %}
+
+<ul>
+    {% for repo in repositories %}
+        <li>
+            <strong>{{ repo.name }}</strong>
+
+            {% if repo.language %}
+                - {{ repo.language }}
+            {% endif %}
+
+            | ⭐ {{ repo.stars }}
+            | 🍴 {{ repo.forks }}
+        </li>
+    {% endfor %}
+</ul>
+
+{% else %}
+
+<p>No repositories synced yet.</p>
+
+{% endif %}
+
+
+{% if activity %}
+
+<h2>Developer Analytics</h2>
+
+<div>
+    <div>
+        <strong>Total Commits</strong>
+        <p>{{ activity.total_commits }}</p>
+    </div>
+
+    <div>
+        <strong>Active Days</strong>
+        <p>{{ activity.active_days }}</p>
+    </div>
+
+    <div>
+        <strong>Pull Requests</strong>
+        <p>{{ activity.total_pull_requests }}</p>
+    </div>
+
+    <div>
+        <strong>Issues</strong>
+        <p>{{ activity.total_issues }}</p>
+    </div>
+
+    <div>
+        <strong>Consistency Score</strong>
+        <p>{{ activity.consistency_score }}</p>
+    </div>
+</div>
+
+{% else %}
+
+<p>Analytics not calculated yet.</p>
+
+{% endif %}
+
+{% endblock %}

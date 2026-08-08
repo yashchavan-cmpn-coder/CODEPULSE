@@ -645,422 +645,460 @@
      CODE QUALITY ANALYSIS
 ====================================================== -->
 
+
+
 <div style="
     margin-bottom: 40px;
 ">
 
-    <h2>
-        Code Quality Analysis
-    </h2>
+```
+<h2>
+    Code Quality Analysis
+</h2>
 
+{% if code_quality_analyses %}
 
-    {% if code_quality_analyses %}
+    {% for analysis in code_quality_analyses %}
 
-        {% for analysis in code_quality_analyses %}
+        <div style="
+            border: 1px solid #ddd;
+            padding: 24px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+        ">
+
+            <!-- Repository Header -->
 
             <div style="
-                border: 1px solid #ddd;
-                padding: 24px;
-                margin-bottom: 25px;
-                border-radius: 12px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
             ">
 
-                <!-- Repository -->
+                <h3 style="margin: 0;">
+                    {{ analysis.repository.name }}
+                </h3>
+
+                <small>
+                    Last analyzed:
+                    {{ analysis.analyzed_at|date:"d M Y, H:i" }}
+                </small>
+
+            </div>
+
+
+            <!-- Main Metrics -->
+
+            <div style="
+                display: grid;
+                grid-template-columns:
+                    repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+                margin-bottom: 25px;
+            ">
 
                 <div style="
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
+                    border: 1px solid #eee;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 8px;
+                ">
+                    <strong style="
+                        display: block;
+                        font-size: 24px;
+                    ">
+                        {{ analysis.files_analyzed }}
+                    </strong>
+
+                    <small>Files</small>
+                </div>
+
+
+                <div style="
+                    border: 1px solid #eee;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 8px;
+                ">
+                    <strong style="
+                        display: block;
+                        font-size: 24px;
+                    ">
+                        {{ analysis.lines_of_code }}
+                    </strong>
+
+                    <small>Lines</small>
+                </div>
+
+
+                <div style="
+                    border: 1px solid #eee;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 8px;
+                ">
+                    <strong style="
+                        display: block;
+                        font-size: 24px;
+                    ">
+                        {{ analysis.functions }}
+                    </strong>
+
+                    <small>Functions</small>
+                </div>
+
+
+                <div style="
+                    border: 1px solid #eee;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 8px;
+                ">
+                    <strong style="
+                        display: block;
+                        font-size: 24px;
+                    ">
+                        {{ analysis.classes }}
+                    </strong>
+
+                    <small>Classes</small>
+                </div>
+
+
+                <div style="
+                    border: 1px solid #eee;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 8px;
+                ">
+                    <strong style="
+                        display: block;
+                        font-size: 24px;
+                    ">
+                        {{ analysis.imports }}
+                    </strong>
+
+                    <small>Imports</small>
+                </div>
+
+
+                <div style="
+                    border: 1px solid #eee;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 8px;
+                ">
+                    <strong style="
+                        display: block;
+                        font-size: 24px;
+                    ">
+                        {{ analysis.complexity }}
+                    </strong>
+
+                    <small>Complexity</small>
+                </div>
+
+
+                <div style="
+                    border: 1px solid #eee;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 8px;
+                ">
+                    <strong style="
+                        display: block;
+                        font-size: 24px;
+                    ">
+                        {{ analysis.max_nesting }}
+                    </strong>
+
+                    <small>Max Nesting</small>
+                </div>
+
+            </div>
+
+
+            <!-- Languages -->
+
+            {% if analysis.languages %}
+
+                <div style="
                     margin-bottom: 20px;
                 ">
 
-                    <h3 style="margin: 0;">
-                        {{ analysis.repository.name }}
-                    </h3>
-
-                    <small>
-                        Last analyzed:
-                        {{ analysis.analyzed_at|date:"d M Y, H:i" }}
-                    </small>
-
-                </div>
-
-
-                <!-- Main Metrics -->
-
-                <div style="
-                    display: grid;
-                    grid-template-columns:
-                        repeat(auto-fit, minmax(120px, 1fr));
-                    gap: 12px;
-                    margin-bottom: 25px;
-                ">
-
-                    <div style="
-                        border: 1px solid #eee;
-                        padding: 15px;
-                        text-align: center;
-                        border-radius: 8px;
-                    ">
-
-                        <strong style="
-                            display: block;
-                            font-size: 24px;
-                        ">
-                            {{ analysis.files_analyzed }}
-                        </strong>
-
-                        <small>
-                            Files
-                        </small>
-
-                    </div>
-
-
-                    <div style="
-                        border: 1px solid #eee;
-                        padding: 15px;
-                        text-align: center;
-                        border-radius: 8px;
-                    ">
-
-                        <strong style="
-                            display: block;
-                            font-size: 24px;
-                        ">
-                            {{ analysis.lines_of_code }}
-                        </strong>
-
-                        <small>
-                            Lines
-                        </small>
-
-                    </div>
-
-
-                    <div style="
-                        border: 1px solid #eee;
-                        padding: 15px;
-                        text-align: center;
-                        border-radius: 8px;
-                    ">
-
-                        <strong style="
-                            display: block;
-                            font-size: 24px;
-                        ">
-                            {{ analysis.functions }}
-                        </strong>
-
-                        <small>
-                            Functions
-                        </small>
-
-                    </div>
-
-
-                    <div style="
-                        border: 1px solid #eee;
-                        padding: 15px;
-                        text-align: center;
-                        border-radius: 8px;
-                    ">
-
-                        <strong style="
-                            display: block;
-                            font-size: 24px;
-                        ">
-                            {{ analysis.classes }}
-                        </strong>
-
-                        <small>
-                            Classes
-                        </small>
-
-                    </div>
-
-
-                    <div style="
-                        border: 1px solid #eee;
-                        padding: 15px;
-                        text-align: center;
-                        border-radius: 8px;
-                    ">
-
-                        <strong style="
-                            display: block;
-                            font-size: 24px;
-                        ">
-                            {{ analysis.imports }}
-                        </strong>
-
-                        <small>
-                            Imports
-                        </small>
-
-                    </div>
-
-
-                    <div style="
-                        border: 1px solid #eee;
-                        padding: 15px;
-                        text-align: center;
-                        border-radius: 8px;
-                    ">
-
-                        <strong style="
-                            display: block;
-                            font-size: 24px;
-                        ">
-                            {{ analysis.complexity }}
-                        </strong>
-
-                        <small>
-                            Complexity
-                        </small>
-
-                    </div>
-
-
-                    <div style="
-                        border: 1px solid #eee;
-                        padding: 15px;
-                        text-align: center;
-                        border-radius: 8px;
-                    ">
-
-                        <strong style="
-                            display: block;
-                            font-size: 24px;
-                        ">
-                            {{ analysis.max_nesting }}
-                        </strong>
-
-                        <small>
-                            Max Nesting
-                        </small>
-
-                    </div>
-
-                </div>
-
-
-                <!-- Languages -->
-
-                {% if analysis.languages %}
-
-                    <div style="
-                        margin-bottom: 25px;
-                    ">
-
-                        <h4>
-                            Languages
-                        </h4>
-
-                        {% for language, data in analysis.languages.items %}
-
-                            <span style="
-                                display: inline-block;
-                                border: 1px solid #ddd;
-                                border-radius: 20px;
-                                padding: 7px 12px;
-                                margin: 4px;
-                                font-size: 13px;
-                            ">
-
-                                <strong>
-                                    {{ language }}
-                                </strong>
-
-                                -
-                                {{ data.files }}
-                                files
-
-                                -
-                                {{ data.lines }}
-                                lines
-
-                            </span>
-
-                        {% endfor %}
-
-                    </div>
-
-                {% endif %}
-
-
-                <!-- File Analysis -->
-
-                <div>
-
                     <h4>
-                        File Analysis
+                        Languages
                     </h4>
 
-                    {% for file in analysis.files.all %}
+                    {% for language, data in analysis.languages.items %}
 
-                        <div style="
-                            border-top: 1px solid #eee;
-                            padding: 18px 0;
+                        <span style="
+                            display: inline-block;
+                            border: 1px solid #ddd;
+                            border-radius: 20px;
+                            padding: 7px 12px;
+                            margin: 4px;
+                            font-size: 13px;
                         ">
 
-                            <div style="
-                                display: flex;
-                                justify-content:
-                                    space-between;
-                                align-items: center;
-                            ">
+                            <strong>
+                                {{ language }}
+                            </strong>
 
-                                <strong>
-                                    {{ file.file_path }}
-                                </strong>
+                            -
+                            {{ data.files }}
+                            files
 
-                                <small>
-                                    {{ file.language }}
-                                </small>
+                            -
+                            {{ data.lines }}
+                            lines
 
-                            </div>
-
-
-                            <div style="
-                                display: flex;
-                                flex-wrap: wrap;
-                                gap: 15px;
-                                margin-top: 10px;
-                                font-size: 13px;
-                            ">
-
-                                <span>
-                                    {{ file.lines_of_code }}
-                                    lines
-                                </span>
-
-                                <span>
-                                    {{ file.functions }}
-                                    functions
-                                </span>
-
-                                <span>
-                                    {{ file.classes }}
-                                    classes
-                                </span>
-
-                                <span>
-                                    {{ file.imports }}
-                                    imports
-                                </span>
-
-                                <span>
-                                    Complexity:
-                                    {{ file.complexity }}
-                                </span>
-
-                                <span>
-                                    Nesting:
-                                    {{ file.max_nesting }}
-                                </span>
-
-                            </div>
-
-
-                            <!-- File Issues -->
-
-                            {% if file.issues %}
-
-                                <div style="
-                                    margin-top: 15px;
-                                    padding: 12px;
-                                    border-left:
-                                        4px solid #d9534f;
-                                    background: #fafafa;
-                                ">
-
-                                    <strong>
-                                        Code Quality Issues
-                                    </strong>
-
-                                    <ul>
-
-                                        {% for issue in file.issues %}
-
-                                            <li>
-
-                                                {% if issue.type %}
-
-                                                    <strong>
-                                                        {{ issue.type }}
-                                                    </strong>
-
-                                                {% endif %}
-
-
-                                                {% if issue.line %}
-
-                                                    -
-                                                    Line
-                                                    {{ issue.line }}
-
-                                                {% endif %}
-
-
-                                                {% if issue.details %}
-
-                                                    -
-                                                    {{ issue.details }}
-
-                                                {% endif %}
-
-                                            </li>
-
-                                        {% endfor %}
-
-                                    </ul>
-
-                                </div>
-
-                            {% endif %}
-
-                        </div>
-
-                    {% empty %}
-
-                        <p>
-                            No file-level analysis available.
-                        </p>
+                        </span>
 
                     {% endfor %}
 
                 </div>
 
+            {% endif %}
+
+
+            <!-- ==========================================
+                 VIEW DETAILS BUTTON
+            =========================================== -->
+
+            <button
+                type="button"
+                onclick="toggleCodeDetails('code-details-{{ analysis.id }}', this)"
+                style="
+                    padding: 10px 18px;
+                    border: 1px solid #333;
+                    background: white;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-weight: 600;
+                "
+            >
+                View Detailed File Analysis
+            </button>
+
+
+            <!-- ==========================================
+                 HIDDEN FILE ANALYSIS
+            =========================================== -->
+
+            <div
+                id="code-details-{{ analysis.id }}"
+                style="
+                    display: none;
+                    margin-top: 25px;
+                "
+            >
+
+                <h4>
+                    File Analysis
+                </h4>
+
+
+                {% for file in analysis.files.all %}
+
+                    <div style="
+                        border-top: 1px solid #eee;
+                        padding: 18px 0;
+                    ">
+
+                        <!-- File Name -->
+
+                        <div style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        ">
+
+                            <strong>
+                                {{ file.file_path }}
+                            </strong>
+
+                            <small>
+                                {{ file.language }}
+                            </small>
+
+                        </div>
+
+
+                        <!-- File Metrics -->
+
+                        <div style="
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 15px;
+                            margin-top: 10px;
+                            font-size: 13px;
+                        ">
+
+                            <span>
+                                {{ file.lines_of_code }}
+                                lines
+                            </span>
+
+                            <span>
+                                {{ file.functions }}
+                                functions
+                            </span>
+
+                            <span>
+                                {{ file.classes }}
+                                classes
+                            </span>
+
+                            <span>
+                                {{ file.imports }}
+                                imports
+                            </span>
+
+                            <span>
+                                Complexity:
+                                {{ file.complexity }}
+                            </span>
+
+                            <span>
+                                Nesting:
+                                {{ file.max_nesting }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- File Issues -->
+
+                        {% if file.issues %}
+
+                            <div style="
+                                margin-top: 15px;
+                                padding: 12px;
+                                border-left:
+                                    4px solid #d9534f;
+                                background: #fafafa;
+                            ">
+
+                                <strong>
+                                    Code Quality Issues
+                                </strong>
+
+                                <ul>
+
+                                    {% for issue in file.issues %}
+
+                                        <li>
+
+                                            {% if issue.type %}
+
+                                                <strong>
+                                                    {{ issue.type }}
+                                                </strong>
+
+                                            {% endif %}
+
+
+                                            {% if issue.line %}
+
+                                                -
+                                                Line
+                                                {{ issue.line }}
+
+                                            {% endif %}
+
+
+                                            {% if issue.details %}
+
+                                                -
+                                                {{ issue.details }}
+
+                                            {% endif %}
+
+                                        </li>
+
+                                    {% endfor %}
+
+                                </ul>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                {% empty %}
+
+                    <p>
+                        No file-level analysis available.
+                    </p>
+
+                {% endfor %}
+
             </div>
-
-        {% endfor %}
-
-
-    {% else %}
-
-        <div style="
-            border: 1px dashed #aaa;
-            padding: 30px;
-            text-align: center;
-            border-radius: 10px;
-        ">
-
-            <h3>
-                Code has not been analyzed yet
-            </h3>
-
-            <p>
-                Select a repository above and click
-                <strong>Analyze Code</strong>
-                to generate code quality insights.
-            </p>
 
         </div>
 
-    {% endif %}
+    {% endfor %}
+
+
+{% else %}
+
+    <div style="
+        border: 1px dashed #aaa;
+        padding: 30px;
+        text-align: center;
+        border-radius: 10px;
+    ">
+
+        <h3>
+            Code has not been analyzed yet
+        </h3>
+
+        <p>
+            Select a repository above and click
+            <strong>Analyze Code</strong>
+            to generate code quality insights.
+        </p>
+
+    </div>
+
+{% endif %}
+```
 
 </div>
+
+<!-- =====================================================
+     CODE QUALITY DETAILS TOGGLE
+====================================================== -->
+
+<script>
+
+function toggleCodeDetails(elementId, button) {
+
+    const element = document.getElementById(elementId);
+
+    if (element.style.display === "none") {
+
+        element.style.display = "block";
+
+        button.innerText =
+            "Hide Detailed File Analysis";
+
+    } else {
+
+        element.style.display = "none";
+
+        button.innerText =
+            "View Detailed File Analysis";
+
+    }
+
+}
+
+</script>
+
 
 {% endblock %}
 

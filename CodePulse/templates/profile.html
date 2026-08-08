@@ -1,475 +1,1066 @@
+
 {% extends "base.html" %}
 
 {% block content %}
 
 <h1>Developer Profile</h1>
 
-<!-- ============================= -->
+<!-- =====================================================
+     PROFILE FORM
+====================================================== -->
 
-<!-- Profile -->
+<div style="
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+">
 
-<!-- ============================= -->
+    <h2>Profile</h2>
 
-<form method="POST">
-    {% csrf_token %}
+    <form method="POST">
 
-```
-{{ form.as_p }}
+        {% csrf_token %}
 
-<button type="submit">
-    Save Profile
-</button>
-```
+        {{ form.as_p }}
 
-</form>
+        <button type="submit">
+            Save Profile
+        </button>
 
-<hr>
+    </form>
 
-<!-- ============================= -->
+</div>
 
-<!-- Repositories -->
 
-<!-- ============================= -->
+<!-- =====================================================
+     REPOSITORIES
+====================================================== -->
 
-<h2>Repositories</h2>
+<div style="margin-bottom: 30px;">
 
-{% if repositories %}
+    <h2>Repositories</h2>
 
-<ul>
-    {% for repo in repositories %}
+    {% if repositories %}
 
-```
-<li>
-    <strong>{{ repo.name }}</strong>
+        <ul>
 
-    {% if repo.language %}
-        - {{ repo.language }}
+            {% for repo in repositories %}
+
+                <li style="margin-bottom: 12px;">
+
+                    <strong>
+                        {{ repo.name }}
+                    </strong>
+
+                    {% if repo.language %}
+                        - {{ repo.language }}
+                    {% endif %}
+
+                    | ⭐ {{ repo.stars }}
+                    | 🍴 {{ repo.forks }}
+
+                    <a
+                        href="{% url 'analyze_code' repo.id %}"
+                        style="
+                            margin-left: 15px;
+                        "
+                    >
+                        Analyze Code
+                    </a>
+
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+    {% else %}
+
+        <p>
+            No repositories found.
+        </p>
+
     {% endif %}
 
-    | ⭐ {{ repo.stars }}
-    | 🍴 {{ repo.forks }}
-</li>
+</div>
 
-{% endfor %}
-```
 
-</ul>
-
-{% else %}
-
-<p>No repositories found.</p>
-
-{% endif %}
-
-<hr>
-
-<!-- ============================= -->
-
-<!-- Developer Activity -->
-
-<!-- ============================= -->
-
-<h2>Developer Activity</h2>
+<!-- =====================================================
+     DEVELOPER ACTIVITY
+====================================================== -->
 
 {% if activity %}
 
-<p>
-    <strong>Active Days:</strong>
-    {{ activity.active_days }}
-</p>
+<div style="
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+">
 
-<p>
-    <strong>Pull Requests:</strong>
-    {{ activity.total_pull_requests }}
-</p>
+    <h2>Developer Activity</h2>
 
-<p>
-    <strong>Issues:</strong>
-    {{ activity.total_issues }}
-</p>
+    <p>
+        <strong>Total Commits:</strong>
+        {{ activity.total_commits }}
+    </p>
 
-<p>
-    <strong>Consistency Score:</strong>
-    {{ activity.consistency_score }}
-</p>
+    <p>
+        <strong>Active Days:</strong>
+        {{ activity.active_days }}
+    </p>
+
+    <p>
+        <strong>Pull Requests:</strong>
+        {{ activity.total_pull_requests }}
+    </p>
+
+    <p>
+        <strong>Issues:</strong>
+        {{ activity.total_issues }}
+    </p>
+
+    <p>
+        <strong>Consistency Score:</strong>
+        {{ activity.consistency_score }}
+    </p>
+
+</div>
 
 {% else %}
 
-<p>No activity data available.</p>
+<p>
+    No activity data available.
+</p>
 
 {% endif %}
 
-<hr>
 
-<!-- ============================= -->
-
-<!-- Commit Analytics -->
-
-<!-- ============================= -->
-
-<h2>Commit Analytics</h2>
+<!-- =====================================================
+     COMMIT ANALYTICS
+====================================================== -->
 
 {% if commit_analytics %}
 
-<p>
-    <strong>Total Commits:</strong>
-    {{ commit_analytics.total_commits }}
-</p>
+<div style="
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+">
 
-<p>
-    <strong>Active Days:</strong>
-    {{ commit_analytics.active_days }}
-</p>
+    <h2>Commit Analytics</h2>
 
-<p>
-    <strong>Average Commits Per Day:</strong>
-    {{ commit_analytics.average_commits_per_day }}
-</p>
+    <p>
+        <strong>Total Commits:</strong>
+        {{ commit_analytics.total_commits }}
+    </p>
 
-<h3>Commit Activity</h3>
+    <p>
+        <strong>Active Days:</strong>
+        {{ commit_analytics.active_days }}
+    </p>
 
-<div style="width: 600px; height: 300px;">
-    <canvas id="commitChart"></canvas>
+    <p>
+        <strong>Average Commits Per Day:</strong>
+        {{ commit_analytics.average_commits_per_day }}
+    </p>
+
+
+    <h3>
+        Commit Activity
+    </h3>
+
+    <canvas
+        id="commitChart"
+        style="
+            max-height: 300px;
+        "
+    ></canvas>
+
+
+    {{ commit_analytics.commit_dates|json_script:"commit-dates" }}
+
+    {{ commit_analytics.commit_counts|json_script:"commit-counts" }}
+
 </div>
 
-{{ commit_analytics.commit_dates|json_script:"commit-dates" }}
-{{ commit_analytics.commit_counts|json_script:"commit-counts" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+
     const commitDates = JSON.parse(
-        document.getElementById("commit-dates").textContent
+        document.getElementById(
+            "commit-dates"
+        ).textContent
     );
 
     const commitCounts = JSON.parse(
-        document.getElementById("commit-counts").textContent
+        document.getElementById(
+            "commit-counts"
+        ).textContent
     );
 
-    const ctx = document.getElementById("commitChart");
+    const ctx =
+        document.getElementById(
+            "commitChart"
+        );
 
-    new Chart(ctx, {
-        type: "line",
+    new Chart(
+        ctx,
+        {
+            type: "line",
 
-        data: {
-            labels: commitDates,
+            data: {
 
-            datasets: [{
-                label: "Commits",
-                data: commitCounts,
-                tension: 0.3,
-                fill: false
-            }]
-        },
+                labels: commitDates,
 
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
+                datasets: [
 
-            scales: {
-                y: {
-                    beginAtZero: true,
+                    {
+                        label: "Commits",
 
-                    ticks: {
-                        precision: 0
+                        data: commitCounts,
+
+                        tension: 0.3,
+
+                        fill: false
                     }
+
+                ]
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+                            precision: 0
+                        }
+
+                    }
+
                 }
+
             }
+
         }
-    });
+    );
+
 </script>
 
 {% else %}
 
-<p>No commit analytics available.</p>
+<p>
+    No commit analytics available.
+</p>
 
 {% endif %}
 
-<hr>
 
-<!-- ============================= -->
-
-<!-- Language Analytics -->
-
-<!-- ============================= -->
-
-<h2>Language Analytics</h2>
+<!-- =====================================================
+     LANGUAGE ANALYTICS
+====================================================== -->
 
 {% if language_analytics %}
 
-<p>
-    <strong>Most Used Language:</strong>
-    {{ language_analytics.most_used_language }}
-</p>
+<div style="
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+">
 
-<p>
-    <strong>Total Languages:</strong>
-    {{ language_analytics.total_languages }}
-</p>
+    <h2>Language Analytics</h2>
 
-<ul>
+    <p>
+        <strong>
+            Most Used Language:
+        </strong>
 
-```
-{% for item in language_analytics.language_data %}
+        {{ language_analytics.most_used_language }}
+    </p>
 
-<li>
-    <strong>{{ item.language }}</strong>
-    -
-    {{ item.count }} repositories
-    -
-    {{ item.percentage }}%
-</li>
+    <p>
+        <strong>
+            Total Languages:
+        </strong>
 
-{% endfor %}
-```
+        {{ language_analytics.total_languages }}
+    </p>
 
-</ul>
 
-{{ language_analytics.language_data|json_script:"language-data" }}
+    <ul>
+
+        {% for item in language_analytics.language_data %}
+
+            <li>
+
+                <strong>
+                    {{ item.language }}
+                </strong>
+
+                -
+
+                {{ item.count }}
+                repositories
+
+                -
+
+                {{ item.percentage }}%
+
+            </li>
+
+        {% endfor %}
+
+    </ul>
+
+
+    {{ language_analytics.language_data|json_script:"language-data" }}
+
+</div>
 
 {% else %}
 
-<p>No language analytics available.</p>
+<p>
+    No language analytics available.
+</p>
 
 {% endif %}
 
-<hr>
 
-<!-- ============================= -->
-
-<!-- Repository Health -->
-
-<!-- ============================= -->
-
-<h2>Repository Health</h2>
+<!-- =====================================================
+     REPOSITORY HEALTH
+====================================================== -->
 
 {% if repository_health %}
 
-{% for item in repository_health %}
-
 <div style="
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
+    margin-bottom: 30px;
 ">
 
-```
-<h3>
-    {{ item.repository.name }}
-</h3>
+    <h2>
+        Repository Health
+    </h2>
 
-<h4>
-    Health Score:
-    {{ item.health.score }}/100
-</h4>
+    {% for item in repository_health %}
 
-<p>
-    <strong>Activity:</strong>
-    {{ item.health.activity_score }}/40
-</p>
+        <div style="
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        ">
 
-<p>
-    <strong>Popularity:</strong>
-    {{ item.health.popularity_score }}/25
-</p>
+            <h3>
+                {{ item.repository.name }}
+            </h3>
 
-<p>
-    <strong>Documentation:</strong>
-    {{ item.health.documentation_score }}/20
-</p>
+            <h4>
+                Health Score:
+                {{ item.health.score }}/100
+            </h4>
 
-<p>
-    <strong>Quality:</strong>
-    {{ item.health.quality_score }}/15
-</p>
-```
+            <p>
+                <strong>
+                    Activity:
+                </strong>
+
+                {{ item.health.activity_score }}/40
+            </p>
+
+            <p>
+                <strong>
+                    Popularity:
+                </strong>
+
+                {{ item.health.popularity_score }}/25
+            </p>
+
+            <p>
+                <strong>
+                    Documentation:
+                </strong>
+
+                {{ item.health.documentation_score }}/20
+            </p>
+
+            <p>
+                <strong>
+                    Quality:
+                </strong>
+
+                {{ item.health.quality_score }}/15
+            </p>
+
+        </div>
+
+    {% endfor %}
 
 </div>
 
-{% endfor %}
-
-{% else %}
-
-<p>No repository health data available.</p>
-
 {% endif %}
 
-<hr>
 
-<!-- ============================= -->
-
-<!-- Developer Skill Analysis -->
-
-<!-- ============================= -->
-
-<h2>Developer Skill Analysis</h2>
+<!-- =====================================================
+     SKILL ANALYTICS
+====================================================== -->
 
 {% if skill_analytics.skills %}
 
-<p>
-    <strong>Total Skills:</strong>
-    {{ skill_analytics.total_skills }}
-</p>
-
-{% for skill in skill_analytics.skills %}
-
 <div style="
     border: 1px solid #ddd;
     padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
+    margin-bottom: 30px;
+    border-radius: 10px;
 ">
 
-```
-<h3>
-    {{ skill.language }}
-</h3>
+    <h2>
+        Skill Analytics
+    </h2>
 
-<h4>
-    Skill Score:
-    {{ skill.score }}/100
-</h4>
+    {% for skill in skill_analytics.skills %}
 
-<p>
-    <strong>Repositories:</strong>
-    {{ skill.repositories }}
-</p>
+        <div style="
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        ">
 
-<p>
-    <strong>Commits:</strong>
-    {{ skill.commits }}
-</p>
+            <h3>
+                {{ skill.language }}
+            </h3>
 
-<p>
-    <strong>Stars:</strong>
-    {{ skill.stars }}
-</p>
+            <h4>
+                Skill Score:
+                {{ skill.score }}/100
+            </h4>
 
-<p>
-    <strong>Forks:</strong>
-    {{ skill.forks }}
-</p>
-```
+            <p>
+                <strong>
+                    Repositories:
+                </strong>
+
+                {{ skill.repositories }}
+            </p>
+
+            <p>
+                <strong>
+                    Commits:
+                </strong>
+
+                {{ skill.commits }}
+            </p>
+
+            <p>
+                <strong>
+                    Stars:
+                </strong>
+
+                {{ skill.stars }}
+            </p>
+
+            <p>
+                <strong>
+                    Forks:
+                </strong>
+
+                {{ skill.forks }}
+            </p>
+
+        </div>
+
+    {% endfor %}
 
 </div>
 
-{% endfor %}
-
-{% else %}
-
-<p>No skill analytics available.</p>
-
 {% endif %}
 
-<hr>
 
-<!-- ============================= -->
-
-<!-- Developer Productivity -->
-
-<!-- ============================= -->
-
-<h2>Developer Productivity</h2>
+<!-- =====================================================
+     PRODUCTIVITY ANALYTICS
+====================================================== -->
 
 {% if productivity_analytics %}
 
 <div style="
     border: 1px solid #ddd;
     padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
+    margin-bottom: 30px;
+    border-radius: 10px;
 ">
 
-```
-<h3>
-    Productivity Score:
-    {{ productivity_analytics.productivity_score }}/100
-</h3>
+    <h2>
+        Developer Productivity
+    </h2>
 
-<hr>
+    <h3>
+        Productivity Score:
+        {{ productivity_analytics.productivity_score }}/100
+    </h3>
 
-<h4>Commit Activity</h4>
 
-<p>
-    <strong>Total Commits:</strong>
-    {{ productivity_analytics.total_commits }}
-</p>
+    <hr>
 
-<p>
-    <strong>Commit Score:</strong>
-    {{ productivity_analytics.commit_score }}/30
-</p>
 
-<hr>
+    <h4>
+        Commit Activity
+    </h4>
 
-<h4>Pull Requests</h4>
+    <p>
+        <strong>
+            Total Commits:
+        </strong>
 
-<p>
-    <strong>Total Pull Requests:</strong>
-    {{ productivity_analytics.total_pull_requests }}
-</p>
+        {{ productivity_analytics.total_commits }}
+    </p>
 
-<p>
-    <strong>Merged Pull Requests:</strong>
-    {{ productivity_analytics.merged_pull_requests }}
-</p>
+    <p>
+        <strong>
+            Commit Score:
+        </strong>
 
-<p>
-    <strong>Merge Rate:</strong>
-    {{ productivity_analytics.merge_rate }}%
-</p>
+        {{ productivity_analytics.commit_score }}/30
+    </p>
 
-<p>
-    <strong>Pull Request Score:</strong>
-    {{ productivity_analytics.pull_request_score }}/25
-</p>
 
-<p>
-    <strong>Merge Score:</strong>
-    {{ productivity_analytics.merge_score }}/20
-</p>
+    <hr>
 
-<hr>
 
-<h4>Issue Resolution</h4>
+    <h4>
+        Pull Requests
+    </h4>
 
-<p>
-    <strong>Total Issues:</strong>
-    {{ productivity_analytics.total_issues }}
-</p>
+    <p>
+        <strong>
+            Total Pull Requests:
+        </strong>
 
-<p>
-    <strong>Closed Issues:</strong>
-    {{ productivity_analytics.closed_issues }}
-</p>
+        {{ productivity_analytics.total_pull_requests }}
+    </p>
 
-<p>
-    <strong>Issue Resolution Rate:</strong>
-    {{ productivity_analytics.issue_resolution_rate }}%
-</p>
+    <p>
+        <strong>
+            Merged Pull Requests:
+        </strong>
 
-<p>
-    <strong>Issue Score:</strong>
-    {{ productivity_analytics.issue_score }}/15
-</p>
+        {{ productivity_analytics.merged_pull_requests }}
+    </p>
 
-<hr>
+    <p>
+        <strong>
+            Merge Rate:
+        </strong>
 
-<h4>Consistency</h4>
+        {{ productivity_analytics.merge_rate }}%
+    </p>
 
-<p>
-    <strong>Consistency Score:</strong>
-    {{ productivity_analytics.consistency_score }}/10
-</p>
-```
+    <p>
+        <strong>
+            Pull Request Score:
+        </strong>
+
+        {{ productivity_analytics.pull_request_score }}/25
+    </p>
+
+    <p>
+        <strong>
+            Merge Score:
+        </strong>
+
+        {{ productivity_analytics.merge_score }}/20
+    </p>
+
+
+    <hr>
+
+
+    <h4>
+        Issue Resolution
+    </h4>
+
+    <p>
+        <strong>
+            Total Issues:
+        </strong>
+
+        {{ productivity_analytics.total_issues }}
+    </p>
+
+    <p>
+        <strong>
+            Closed Issues:
+        </strong>
+
+        {{ productivity_analytics.closed_issues }}
+    </p>
+
+    <p>
+        <strong>
+            Issue Resolution Rate:
+        </strong>
+
+        {{ productivity_analytics.issue_resolution_rate }}%
+    </p>
+
+    <p>
+        <strong>
+            Issue Score:
+        </strong>
+
+        {{ productivity_analytics.issue_score }}/15
+    </p>
+
+
+    <hr>
+
+
+    <h4>
+        Consistency
+    </h4>
+
+    <p>
+        <strong>
+            Consistency Score:
+        </strong>
+
+        {{ productivity_analytics.consistency_score }}/10
+    </p>
 
 </div>
 
-{% else %}
-
-<p>No productivity analytics available.</p>
-
 {% endif %}
 
+
+<!-- =====================================================
+     CODE QUALITY ANALYSIS
+====================================================== -->
+
+<div style="
+    margin-bottom: 40px;
+">
+
+    <h2>
+        Code Quality Analysis
+    </h2>
+
+
+    {% if code_quality_analyses %}
+
+        {% for analysis in code_quality_analyses %}
+
+            <div style="
+                border: 1px solid #ddd;
+                padding: 24px;
+                margin-bottom: 25px;
+                border-radius: 12px;
+            ">
+
+                <!-- Repository -->
+
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                ">
+
+                    <h3 style="margin: 0;">
+                        {{ analysis.repository.name }}
+                    </h3>
+
+                    <small>
+                        Last analyzed:
+                        {{ analysis.analyzed_at|date:"d M Y, H:i" }}
+                    </small>
+
+                </div>
+
+
+                <!-- Main Metrics -->
+
+                <div style="
+                    display: grid;
+                    grid-template-columns:
+                        repeat(auto-fit, minmax(120px, 1fr));
+                    gap: 12px;
+                    margin-bottom: 25px;
+                ">
+
+                    <div style="
+                        border: 1px solid #eee;
+                        padding: 15px;
+                        text-align: center;
+                        border-radius: 8px;
+                    ">
+
+                        <strong style="
+                            display: block;
+                            font-size: 24px;
+                        ">
+                            {{ analysis.files_analyzed }}
+                        </strong>
+
+                        <small>
+                            Files
+                        </small>
+
+                    </div>
+
+
+                    <div style="
+                        border: 1px solid #eee;
+                        padding: 15px;
+                        text-align: center;
+                        border-radius: 8px;
+                    ">
+
+                        <strong style="
+                            display: block;
+                            font-size: 24px;
+                        ">
+                            {{ analysis.lines_of_code }}
+                        </strong>
+
+                        <small>
+                            Lines
+                        </small>
+
+                    </div>
+
+
+                    <div style="
+                        border: 1px solid #eee;
+                        padding: 15px;
+                        text-align: center;
+                        border-radius: 8px;
+                    ">
+
+                        <strong style="
+                            display: block;
+                            font-size: 24px;
+                        ">
+                            {{ analysis.functions }}
+                        </strong>
+
+                        <small>
+                            Functions
+                        </small>
+
+                    </div>
+
+
+                    <div style="
+                        border: 1px solid #eee;
+                        padding: 15px;
+                        text-align: center;
+                        border-radius: 8px;
+                    ">
+
+                        <strong style="
+                            display: block;
+                            font-size: 24px;
+                        ">
+                            {{ analysis.classes }}
+                        </strong>
+
+                        <small>
+                            Classes
+                        </small>
+
+                    </div>
+
+
+                    <div style="
+                        border: 1px solid #eee;
+                        padding: 15px;
+                        text-align: center;
+                        border-radius: 8px;
+                    ">
+
+                        <strong style="
+                            display: block;
+                            font-size: 24px;
+                        ">
+                            {{ analysis.imports }}
+                        </strong>
+
+                        <small>
+                            Imports
+                        </small>
+
+                    </div>
+
+
+                    <div style="
+                        border: 1px solid #eee;
+                        padding: 15px;
+                        text-align: center;
+                        border-radius: 8px;
+                    ">
+
+                        <strong style="
+                            display: block;
+                            font-size: 24px;
+                        ">
+                            {{ analysis.complexity }}
+                        </strong>
+
+                        <small>
+                            Complexity
+                        </small>
+
+                    </div>
+
+
+                    <div style="
+                        border: 1px solid #eee;
+                        padding: 15px;
+                        text-align: center;
+                        border-radius: 8px;
+                    ">
+
+                        <strong style="
+                            display: block;
+                            font-size: 24px;
+                        ">
+                            {{ analysis.max_nesting }}
+                        </strong>
+
+                        <small>
+                            Max Nesting
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Languages -->
+
+                {% if analysis.languages %}
+
+                    <div style="
+                        margin-bottom: 25px;
+                    ">
+
+                        <h4>
+                            Languages
+                        </h4>
+
+                        {% for language, data in analysis.languages.items %}
+
+                            <span style="
+                                display: inline-block;
+                                border: 1px solid #ddd;
+                                border-radius: 20px;
+                                padding: 7px 12px;
+                                margin: 4px;
+                                font-size: 13px;
+                            ">
+
+                                <strong>
+                                    {{ language }}
+                                </strong>
+
+                                -
+                                {{ data.files }}
+                                files
+
+                                -
+                                {{ data.lines }}
+                                lines
+
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- File Analysis -->
+
+                <div>
+
+                    <h4>
+                        File Analysis
+                    </h4>
+
+                    {% for file in analysis.files.all %}
+
+                        <div style="
+                            border-top: 1px solid #eee;
+                            padding: 18px 0;
+                        ">
+
+                            <div style="
+                                display: flex;
+                                justify-content:
+                                    space-between;
+                                align-items: center;
+                            ">
+
+                                <strong>
+                                    {{ file.file_path }}
+                                </strong>
+
+                                <small>
+                                    {{ file.language }}
+                                </small>
+
+                            </div>
+
+
+                            <div style="
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 15px;
+                                margin-top: 10px;
+                                font-size: 13px;
+                            ">
+
+                                <span>
+                                    {{ file.lines_of_code }}
+                                    lines
+                                </span>
+
+                                <span>
+                                    {{ file.functions }}
+                                    functions
+                                </span>
+
+                                <span>
+                                    {{ file.classes }}
+                                    classes
+                                </span>
+
+                                <span>
+                                    {{ file.imports }}
+                                    imports
+                                </span>
+
+                                <span>
+                                    Complexity:
+                                    {{ file.complexity }}
+                                </span>
+
+                                <span>
+                                    Nesting:
+                                    {{ file.max_nesting }}
+                                </span>
+
+                            </div>
+
+
+                            <!-- File Issues -->
+
+                            {% if file.issues %}
+
+                                <div style="
+                                    margin-top: 15px;
+                                    padding: 12px;
+                                    border-left:
+                                        4px solid #d9534f;
+                                    background: #fafafa;
+                                ">
+
+                                    <strong>
+                                        Code Quality Issues
+                                    </strong>
+
+                                    <ul>
+
+                                        {% for issue in file.issues %}
+
+                                            <li>
+
+                                                {% if issue.type %}
+
+                                                    <strong>
+                                                        {{ issue.type }}
+                                                    </strong>
+
+                                                {% endif %}
+
+
+                                                {% if issue.line %}
+
+                                                    -
+                                                    Line
+                                                    {{ issue.line }}
+
+                                                {% endif %}
+
+
+                                                {% if issue.details %}
+
+                                                    -
+                                                    {{ issue.details }}
+
+                                                {% endif %}
+
+                                            </li>
+
+                                        {% endfor %}
+
+                                    </ul>
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% empty %}
+
+                        <p>
+                            No file-level analysis available.
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+
+    {% else %}
+
+        <div style="
+            border: 1px dashed #aaa;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+        ">
+
+            <h3>
+                Code has not been analyzed yet
+            </h3>
+
+            <p>
+                Select a repository above and click
+                <strong>Analyze Code</strong>
+                to generate code quality insights.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
 {% endblock %}
+

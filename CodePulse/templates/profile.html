@@ -1,103 +1,68 @@
-
 {% extends "base.html" %}
 
 {% block content %}
 
-<h1>Developer Profile</h1>
+<h2>Profile</h2>
 
-<!-- =====================================================
-     PROFILE FORM
-====================================================== -->
+<form method="POST">
 
-<div style="
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin-bottom: 30px;
-    border-radius: 10px;
-">
+    {% csrf_token %}
 
-    <h2>Profile</h2>
+    {{ form.as_p }}
 
-    <form method="POST">
+    <button type="submit">
+        Save Profile
+    </button>
 
-        {% csrf_token %}
-
-        {{ form.as_p }}
-
-        <button type="submit">
-            Save Profile
-        </button>
-
-    </form>
-
-</div>
+</form>
 
 
-<!-- =====================================================
-     REPOSITORIES
-====================================================== -->
+<h2>Repositories</h2>
 
-<div style="margin-bottom: 30px;">
+{% if repositories %}
 
-    <h2>Repositories</h2>
+    <ul>
 
-    {% if repositories %}
+        {% for repo in repositories %}
 
-        <ul>
+            <li style="margin-bottom: 12px;">
 
-            {% for repo in repositories %}
+                <strong>
+                    {{ repo.name }}
+                </strong>
 
-                <li style="margin-bottom: 12px;">
+                {% if repo.language %}
+                    - {{ repo.language }}
+                {% endif %}
 
-                    <strong>
-                        {{ repo.name }}
-                    </strong>
+                | ⭐ {{ repo.stars }}
+                | 🍴 {{ repo.forks }}
 
-                    {% if repo.language %}
-                        - {{ repo.language }}
-                    {% endif %}
+                <a
+                    href="{% url 'analyze_code' repo.id %}"
+                    style="
+                        margin-left: 15px;
+                    "
+                >
+                    Analyze Code
+                </a>
 
-                    | ⭐ {{ repo.stars }}
-                    | 🍴 {{ repo.forks }}
+            </li>
 
-                    <a
-                        href="{% url 'analyze_code' repo.id %}"
-                        style="
-                            margin-left: 15px;
-                        "
-                    >
-                        Analyze Code
-                    </a>
+        {% endfor %}
 
-                </li>
+    </ul>
 
-            {% endfor %}
+{% else %}
 
-        </ul>
+    <p>
+        No repositories found.
+    </p>
 
-    {% else %}
+{% endif %}
 
-        <p>
-            No repositories found.
-        </p>
-
-    {% endif %}
-
-</div>
-
-
-<!-- =====================================================
-     DEVELOPER ACTIVITY
-====================================================== -->
 
 {% if activity %}
-
-<div style="
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin-bottom: 30px;
-    border-radius: 10px;
-">
 
     <h2>Developer Activity</h2>
 
@@ -126,29 +91,10 @@
         {{ activity.consistency_score }}
     </p>
 
-</div>
-
-{% else %}
-
-<p>
-    No activity data available.
-</p>
-
 {% endif %}
 
 
-<!-- =====================================================
-     COMMIT ANALYTICS
-====================================================== -->
-
 {% if commit_analytics %}
-
-<div style="
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin-bottom: 30px;
-    border-radius: 10px;
-">
 
     <h2>Commit Analytics</h2>
 
@@ -167,7 +113,6 @@
         {{ commit_analytics.average_commits_per_day }}
     </p>
 
-
     <h3>
         Commit Activity
     </h3>
@@ -179,107 +124,14 @@
         "
     ></canvas>
 
-
     {{ commit_analytics.commit_dates|json_script:"commit-dates" }}
 
     {{ commit_analytics.commit_counts|json_script:"commit-counts" }}
 
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-
-    const commitDates = JSON.parse(
-        document.getElementById(
-            "commit-dates"
-        ).textContent
-    );
-
-    const commitCounts = JSON.parse(
-        document.getElementById(
-            "commit-counts"
-        ).textContent
-    );
-
-    const ctx =
-        document.getElementById(
-            "commitChart"
-        );
-
-    new Chart(
-        ctx,
-        {
-            type: "line",
-
-            data: {
-
-                labels: commitDates,
-
-                datasets: [
-
-                    {
-                        label: "Commits",
-
-                        data: commitCounts,
-
-                        tension: 0.3,
-
-                        fill: false
-                    }
-
-                ]
-            },
-
-            options: {
-
-                responsive: true,
-
-                maintainAspectRatio: false,
-
-                scales: {
-
-                    y: {
-
-                        beginAtZero: true,
-
-                        ticks: {
-                            precision: 0
-                        }
-
-                    }
-
-                }
-
-            }
-
-        }
-    );
-
-</script>
-
-{% else %}
-
-<p>
-    No commit analytics available.
-</p>
-
 {% endif %}
 
 
-<!-- =====================================================
-     LANGUAGE ANALYTICS
-====================================================== -->
-
 {% if language_analytics %}
-
-<div style="
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin-bottom: 30px;
-    border-radius: 10px;
-">
 
     <h2>Language Analytics</h2>
 
@@ -298,7 +150,6 @@
 
         {{ language_analytics.total_languages }}
     </p>
-
 
     <ul>
 
@@ -325,29 +176,12 @@
 
     </ul>
 
-
     {{ language_analytics.language_data|json_script:"language-data" }}
-
-</div>
-
-{% else %}
-
-<p>
-    No language analytics available.
-</p>
 
 {% endif %}
 
 
-<!-- =====================================================
-     REPOSITORY HEALTH
-====================================================== -->
-
 {% if repository_health %}
-
-<div style="
-    margin-bottom: 30px;
-">
 
     <h2>
         Repository Health
@@ -407,23 +241,10 @@
 
     {% endfor %}
 
-</div>
-
 {% endif %}
 
 
-<!-- =====================================================
-     SKILL ANALYTICS
-====================================================== -->
-
 {% if skill_analytics.skills %}
-
-<div style="
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin-bottom: 30px;
-    border-radius: 10px;
-">
 
     <h2>
         Skill Analytics
@@ -481,23 +302,10 @@
 
     {% endfor %}
 
-</div>
-
 {% endif %}
 
 
-<!-- =====================================================
-     PRODUCTIVITY ANALYTICS
-====================================================== -->
-
 {% if productivity_analytics %}
-
-<div style="
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin-bottom: 30px;
-    border-radius: 10px;
-">
 
     <h2>
         Developer Productivity
@@ -508,9 +316,7 @@
         {{ productivity_analytics.productivity_score }}/100
     </h3>
 
-
     <hr>
-
 
     <h4>
         Commit Activity
@@ -532,9 +338,7 @@
         {{ productivity_analytics.commit_score }}/30
     </p>
 
-
     <hr>
-
 
     <h4>
         Pull Requests
@@ -580,9 +384,7 @@
         {{ productivity_analytics.merge_score }}/20
     </p>
 
-
     <hr>
-
 
     <h4>
         Issue Resolution
@@ -620,9 +422,7 @@
         {{ productivity_analytics.issue_score }}/15
     </p>
 
-
     <hr>
-
 
     <h4>
         Consistency
@@ -636,8 +436,6 @@
         {{ productivity_analytics.consistency_score }}/10
     </p>
 
-</div>
-
 {% endif %}
 
 
@@ -645,13 +443,6 @@
      CODE QUALITY ANALYSIS
 ====================================================== -->
 
-
-
-<div style="
-    margin-bottom: 40px;
-">
-
-```
 <h2>
     Code Quality Analysis
 </h2>
@@ -667,7 +458,9 @@
             border-radius: 12px;
         ">
 
-            <!-- Repository Header -->
+            <!-- ==========================================
+                 REPOSITORY HEADER
+            =========================================== -->
 
             <div style="
                 display: flex;
@@ -677,18 +470,168 @@
             ">
 
                 <h3 style="margin: 0;">
+
                     {{ analysis.repository.name }}
+
                 </h3>
 
                 <small>
+
                     Last analyzed:
+
                     {{ analysis.analyzed_at|date:"d M Y, H:i" }}
+
                 </small>
 
             </div>
 
 
-            <!-- Main Metrics -->
+            <!-- ==========================================
+                 CODE QUALITY SCORE
+            =========================================== -->
+
+            <div style="
+                border: 1px solid #ddd;
+                padding: 20px;
+                margin-bottom: 20px;
+                border-radius: 10px;
+                text-align: center;
+            ">
+
+                <h3 style="
+                    margin-top: 0;
+                ">
+
+                    Code Quality Score
+
+                </h3>
+
+                <div style="
+                    font-size: 42px;
+                    font-weight: bold;
+                    margin: 10px 0;
+                ">
+
+                    {{ analysis.quality_score }}/100
+
+                </div>
+
+
+                {% if analysis.quality_score >= 80 %}
+
+                    <strong>
+                        Excellent
+                    </strong>
+
+                {% elif analysis.quality_score >= 60 %}
+
+                    <strong>
+                        Good
+                    </strong>
+
+                {% elif analysis.quality_score >= 40 %}
+
+                    <strong>
+                        Needs Improvement
+                    </strong>
+
+                {% else %}
+
+                    <strong>
+                        Poor
+                    </strong>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ==========================================
+                 ISSUE SEVERITY
+            =========================================== -->
+
+            <div style="
+                display: grid;
+                grid-template-columns:
+                    repeat(auto-fit, minmax(140px, 1fr));
+                gap: 12px;
+                margin-bottom: 25px;
+            ">
+
+                <div style="
+                    border: 1px solid #ddd;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 8px;
+                ">
+
+                    <strong style="
+                        display: block;
+                        font-size: 24px;
+                    ">
+
+                        {{ analysis.high_issues }}
+
+                    </strong>
+
+                    <small>
+                        High Issues
+                    </small>
+
+                </div>
+
+
+                <div style="
+                    border: 1px solid #ddd;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 8px;
+                ">
+
+                    <strong style="
+                        display: block;
+                        font-size: 24px;
+                    ">
+
+                        {{ analysis.medium_issues }}
+
+                    </strong>
+
+                    <small>
+                        Medium Issues
+                    </small>
+
+                </div>
+
+
+                <div style="
+                    border: 1px solid #ddd;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 8px;
+                ">
+
+                    <strong style="
+                        display: block;
+                        font-size: 24px;
+                    ">
+
+                        {{ analysis.low_issues }}
+
+                    </strong>
+
+                    <small>
+                        Low Issues
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==========================================
+                 MAIN METRICS
+            =========================================== -->
 
             <div style="
                 display: grid;
@@ -704,14 +647,20 @@
                     text-align: center;
                     border-radius: 8px;
                 ">
+
                     <strong style="
                         display: block;
                         font-size: 24px;
                     ">
+
                         {{ analysis.files_analyzed }}
+
                     </strong>
 
-                    <small>Files</small>
+                    <small>
+                        Files
+                    </small>
+
                 </div>
 
 
@@ -721,14 +670,20 @@
                     text-align: center;
                     border-radius: 8px;
                 ">
+
                     <strong style="
                         display: block;
                         font-size: 24px;
                     ">
+
                         {{ analysis.lines_of_code }}
+
                     </strong>
 
-                    <small>Lines</small>
+                    <small>
+                        Lines
+                    </small>
+
                 </div>
 
 
@@ -738,14 +693,20 @@
                     text-align: center;
                     border-radius: 8px;
                 ">
+
                     <strong style="
                         display: block;
                         font-size: 24px;
                     ">
+
                         {{ analysis.functions }}
+
                     </strong>
 
-                    <small>Functions</small>
+                    <small>
+                        Functions
+                    </small>
+
                 </div>
 
 
@@ -755,14 +716,20 @@
                     text-align: center;
                     border-radius: 8px;
                 ">
+
                     <strong style="
                         display: block;
                         font-size: 24px;
                     ">
+
                         {{ analysis.classes }}
+
                     </strong>
 
-                    <small>Classes</small>
+                    <small>
+                        Classes
+                    </small>
+
                 </div>
 
 
@@ -772,14 +739,20 @@
                     text-align: center;
                     border-radius: 8px;
                 ">
+
                     <strong style="
                         display: block;
                         font-size: 24px;
                     ">
+
                         {{ analysis.imports }}
+
                     </strong>
 
-                    <small>Imports</small>
+                    <small>
+                        Imports
+                    </small>
+
                 </div>
 
 
@@ -789,14 +762,20 @@
                     text-align: center;
                     border-radius: 8px;
                 ">
+
                     <strong style="
                         display: block;
                         font-size: 24px;
                     ">
+
                         {{ analysis.complexity }}
+
                     </strong>
 
-                    <small>Complexity</small>
+                    <small>
+                        Complexity
+                    </small>
+
                 </div>
 
 
@@ -806,20 +785,28 @@
                     text-align: center;
                     border-radius: 8px;
                 ">
+
                     <strong style="
                         display: block;
                         font-size: 24px;
                     ">
+
                         {{ analysis.max_nesting }}
+
                     </strong>
 
-                    <small>Max Nesting</small>
+                    <small>
+                        Max Nesting
+                    </small>
+
                 </div>
 
             </div>
 
 
-            <!-- Languages -->
+            <!-- ==========================================
+                 LANGUAGES
+            =========================================== -->
 
             {% if analysis.languages %}
 
@@ -847,10 +834,12 @@
                             </strong>
 
                             -
+
                             {{ data.files }}
                             files
 
                             -
+
                             {{ data.lines }}
                             lines
 
@@ -869,7 +858,10 @@
 
             <button
                 type="button"
-                onclick="toggleCodeDetails('code-details-{{ analysis.id }}', this)"
+                onclick="toggleCodeDetails(
+                    'code-details-{{ analysis.id }}',
+                    this
+                )"
                 style="
                     padding: 10px 18px;
                     border: 1px solid #333;
@@ -879,7 +871,9 @@
                     font-weight: 600;
                 "
             >
+
                 View Detailed File Analysis
+
             </button>
 
 
@@ -937,33 +931,45 @@
                         ">
 
                             <span>
+
                                 {{ file.lines_of_code }}
                                 lines
+
                             </span>
 
                             <span>
+
                                 {{ file.functions }}
                                 functions
+
                             </span>
 
                             <span>
+
                                 {{ file.classes }}
                                 classes
+
                             </span>
 
                             <span>
+
                                 {{ file.imports }}
                                 imports
+
                             </span>
 
                             <span>
+
                                 Complexity:
                                 {{ file.complexity }}
+
                             </span>
 
                             <span>
+
                                 Nesting:
                                 {{ file.max_nesting }}
+
                             </span>
 
                         </div>
@@ -1057,48 +1063,136 @@
         </h3>
 
         <p>
+
             Select a repository above and click
             <strong>Analyze Code</strong>
             to generate code quality insights.
+
         </p>
 
     </div>
 
 {% endif %}
-```
+<script>
+    function toggleCodeDetails(elementId, button) {
 
-</div>
+        const details = document.getElementById(
+            elementId
+        );
 
-<!-- =====================================================
-     CODE QUALITY DETAILS TOGGLE
-====================================================== -->
+        if (!details) {
+            return;
+        }
 
+        if (details.style.display === "none") {
+
+            details.style.display = "block";
+
+            button.textContent =
+                "Hide Detailed File Analysis";
+
+        } else {
+
+            details.style.display = "none";
+
+            button.textContent =
+                "View Detailed File Analysis";
+        }
+    }
+</script>
 <script>
 
-function toggleCodeDetails(elementId, button) {
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    const element = document.getElementById(elementId);
+        const datesElement =
+            document.getElementById(
+                "commit-dates"
+            );
 
-    if (element.style.display === "none") {
+        const countsElement =
+            document.getElementById(
+                "commit-counts"
+            );
 
-        element.style.display = "block";
+        const chartElement =
+            document.getElementById(
+                "commitChart"
+            );
 
-        button.innerText =
-            "Hide Detailed File Analysis";
 
-    } else {
+        if (
+            !datesElement ||
+            !countsElement ||
+            !chartElement
+        ) {
+            return;
+        }
 
-        element.style.display = "none";
 
-        button.innerText =
-            "View Detailed File Analysis";
+        const commitDates =
+            JSON.parse(
+                datesElement.textContent
+            );
+
+        const commitCounts =
+            JSON.parse(
+                countsElement.textContent
+            );
+
+
+        new Chart(
+            chartElement,
+            {
+                type: "bar",
+
+                data: {
+
+                    labels: commitDates,
+
+                    datasets: [
+                        {
+                            label: "Commits",
+
+                            data: commitCounts,
+
+                            borderWidth: 1
+                        }
+                    ]
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero: true,
+
+                            ticks: {
+                                precision: 0
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
 
     }
 
-}
+);
 
 </script>
 
 
-{% endblock %}
 
+{% endblock %}

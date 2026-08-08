@@ -1,28 +1,292 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="en">
+
 <head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>CodePulse</title>
+
+    <!-- Chart.js -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/chart.js"
+    ></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f8fafc;
+            color: #111827;
+        }
+
+        /* ================================
+           NAVBAR
+        ================================= */
+
+        .navbar {
+            height: 70px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 40px;
+        }
+
+        /* Logo */
+
+        .navbar-logo {
+            text-decoration: none;
+            color: #111827;
+
+            font-size: 23px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* Right side */
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        /* Welcome */
+
+        .welcome {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* Navigation links */
+
+        .nav-link {
+            text-decoration: none;
+            color: #374151;
+
+            font-size: 14px;
+            font-weight: 500;
+
+            padding: 8px 4px;
+        }
+
+        .nav-link:hover {
+            color: #111827;
+        }
+
+        /* Logout */
+
+        .logout-link {
+            text-decoration: none;
+            color: #dc2626;
+
+            font-size: 14px;
+            font-weight: 500;
+
+            padding: 8px 4px;
+        }
+
+        .logout-link:hover {
+            color: #991b1b;
+        }
+
+        /* Login */
+
+        .login-link {
+            text-decoration: none;
+            color: #374151;
+
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Register */
+
+        .register-link {
+            text-decoration: none;
+            color: #ffffff;
+
+            background: #111827;
+
+            padding: 9px 17px;
+
+            border-radius: 6px;
+
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .register-link:hover {
+            background: #374151;
+        }
+
+        /* ================================
+           MESSAGES
+        ================================= */
+
+        .messages-container {
+            max-width: 1200px;
+            margin: 20px auto 0;
+            padding: 0 25px;
+        }
+
+        .message {
+            padding: 12px 18px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: #ffffff;
+
+            margin-bottom: 10px;
+
+            font-size: 14px;
+        }
+
+        /* ================================
+           PAGE CONTENT
+        ================================= */
+
+        .page-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 25px;
+        }
+
+    </style>
+
 </head>
+
 
 <body>
 
-    <nav>
-        <a href="{% url 'home' %}">CodePulse</a>
+
+    <!-- =================================
+         NAVBAR
+    ================================== -->
+
+    <nav class="navbar">
+
+        <!-- Logo -->
+
+        <a
+            href="{% url 'home' %}"
+            class="navbar-logo"
+        >
+            CodePulse
+        </a>
+
 
         {% if user.is_authenticated %}
-            <span>Welcome, {{ user.username }}</span>
-            <a href="{% url 'profile' %}">Profile</a>
-            <a href="{% url 'logout' %}">Logout</a>
+
+            <div class="navbar-right">
+
+                <span class="welcome">
+                    Welcome, {{ user.username }}
+                </span>
+
+
+                <a
+                    href="{% url 'home' %}"
+                    class="nav-link"
+                >
+                    Dashboard
+                </a>
+
+
+                <a
+                    href="{% url 'profile' %}"
+                    class="nav-link"
+                >
+                    Profile
+                </a>
+
+
+                <a
+                    href="{% url 'logout' %}"
+                    class="logout-link"
+                >
+                    Logout
+                </a>
+
+            </div>
+
+
         {% else %}
-            <a href="{% url 'login' %}">Login</a>
-            <a href="{% url 'register' %}">Register</a>
+
+            <div class="navbar-right">
+
+                <a
+                    href="{% url 'login' %}"
+                    class="login-link"
+                >
+                    Login
+                </a>
+
+
+                <a
+                    href="{% url 'register' %}"
+                    class="register-link"
+                >
+                    Register
+                </a>
+
+            </div>
+
         {% endif %}
+
     </nav>
 
-    <hr>
 
-    {% block content %}
-    {% endblock %}
+    <!-- =================================
+         DJANGO MESSAGES
+    ================================== -->
+
+    {% if messages %}
+
+        <div class="messages-container">
+
+            {% for message in messages %}
+
+                <div class="message">
+
+                    {{ message }}
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =================================
+         PAGE CONTENT
+    ================================== -->
+
+    <main class="page-content">
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
 
 </body>
+
 </html>

@@ -58,23 +58,186 @@ def home(request):
 
     profile = request.user.developerprofile
 
+    # -----------------------------------------------------
+    # Repositories
+    # -----------------------------------------------------
+
     repositories = profile.repositories.all()
+
+    # -----------------------------------------------------
+    # Developer Activity
+    # -----------------------------------------------------
 
     activity = getattr(
         profile,
         "activity",
-        None
+        None,
     )
+
+    # -----------------------------------------------------
+    # Repository Health
+    # -----------------------------------------------------
+
+    repository_health = []
+
+    for repo in repositories:
+
+        health = calculate_repository_health(
+            repo
+        )
+
+        repository_health.append(
+            {
+                "repository": repo,
+                "health": health,
+            }
+        )
+
+    # -----------------------------------------------------
+    # Commit Analytics
+    # -----------------------------------------------------
+
+    commit_analytics = calculate_commit_analytics(
+        profile
+    )
+
+    # -----------------------------------------------------
+    # Language Analytics
+    # -----------------------------------------------------
+
+    language_analytics = calculate_language_analytics(
+        profile
+    )
+
+    # -----------------------------------------------------
+    # Skill Analytics
+    # -----------------------------------------------------
+
+    skill_analytics = calculate_skill_analytics(
+        profile
+    )
+
+    # -----------------------------------------------------
+    # Productivity Analytics
+    # -----------------------------------------------------
+
+    productivity_analytics = (
+        calculate_productivity_analytics(
+            profile
+        )
+    )
+
+    # -----------------------------------------------------
+    # Code Quality
+    # -----------------------------------------------------
+
+    code_quality_analyses = (
+        CodeQualityAnalysis.objects
+        .filter(
+            repository__developer=profile
+        )
+        .select_related(
+            "repository"
+        )
+        .prefetch_related(
+            "files"
+        )
+    )
+
+    # -----------------------------------------------------
+    # Code Quality Summary
+    # -----------------------------------------------------
+
+    code_quality_summary = []
+
+    for analysis in code_quality_analyses:
+
+        code_quality_summary.append(
+            {
+                "repository": analysis.repository,
+
+                "quality_score": (
+                    analysis.quality_score
+                ),
+
+                "high_issues": (
+                    analysis.high_issues
+                ),
+
+                "medium_issues": (
+                    analysis.medium_issues
+                ),
+
+                "low_issues": (
+                    analysis.low_issues
+                ),
+
+                "files_analyzed": (
+                    analysis.files_analyzed
+                ),
+
+                "lines_of_code": (
+                    analysis.lines_of_code
+                ),
+
+                "functions": (
+                    analysis.functions
+                ),
+
+                "classes": (
+                    analysis.classes
+                ),
+
+                "imports": (
+                    analysis.imports
+                ),
+
+                "complexity": (
+                    analysis.complexity
+                ),
+
+                "max_nesting": (
+                    analysis.max_nesting
+                ),
+            }
+        )
+
+    # -----------------------------------------------------
+    # Dashboard
+    # -----------------------------------------------------
 
     return render(
         request,
         "home.html",
         {
             "profile": profile,
+
             "repositories": repositories,
+
             "activity": activity,
-        }
+
+            "repository_health": repository_health,
+
+            "commit_analytics": commit_analytics,
+
+            "language_analytics": language_analytics,
+
+            "skill_analytics": skill_analytics,
+
+            "productivity_analytics": (
+                productivity_analytics
+            ),
+
+            "code_quality_analyses": (
+                code_quality_analyses
+            ),
+
+            "code_quality_summary": (
+                code_quality_summary
+            ),
+        },
     )
+
 
 
 # =========================================================

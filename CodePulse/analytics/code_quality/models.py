@@ -2,10 +2,6 @@ from django.db import models
 
 
 class CodeQualityAnalysis(models.Model):
-    """
-    Stores the latest code quality analysis
-    for a developer repository.
-    """
 
     repository = models.OneToOneField(
         "github_data.Repository",
@@ -13,16 +9,57 @@ class CodeQualityAnalysis(models.Model):
         related_name="code_quality",
     )
 
-    files_analyzed = models.PositiveIntegerField(default=0)
-    lines_of_code = models.PositiveIntegerField(default=0)
-    functions = models.PositiveIntegerField(default=0)
-    classes = models.PositiveIntegerField(default=0)
-    imports = models.PositiveIntegerField(default=0)
+    files_analyzed = models.PositiveIntegerField(
+        default=0
+    )
 
-    complexity = models.PositiveIntegerField(default=0)
-    max_nesting = models.PositiveIntegerField(default=0)
+    lines_of_code = models.PositiveIntegerField(
+        default=0
+    )
 
-    languages = models.JSONField(default=dict)
+    functions = models.PositiveIntegerField(
+        default=0
+    )
+
+    classes = models.PositiveIntegerField(
+        default=0
+    )
+
+    imports = models.PositiveIntegerField(
+        default=0
+    )
+
+    complexity = models.PositiveIntegerField(
+        default=0
+    )
+
+    max_nesting = models.PositiveIntegerField(
+        default=0
+    )
+
+    # Overall code quality score
+
+    quality_score = models.PositiveIntegerField(
+        default=100
+    )
+
+    # Issue severity counts
+
+    high_issues = models.PositiveIntegerField(
+        default=0
+    )
+
+    medium_issues = models.PositiveIntegerField(
+        default=0
+    )
+
+    low_issues = models.PositiveIntegerField(
+        default=0
+    )
+
+    languages = models.JSONField(
+        default=dict
+    )
 
     analyzed_at = models.DateTimeField(
         auto_now=True
@@ -36,10 +73,6 @@ class CodeQualityAnalysis(models.Model):
 
 
 class CodeQualityFile(models.Model):
-    """
-    Stores code quality analysis for
-    individual source files.
-    """
 
     analysis = models.ForeignKey(
         CodeQualityAnalysis,

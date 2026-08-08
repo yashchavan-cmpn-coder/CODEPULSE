@@ -2,9 +2,13 @@
 
 {% block content %}
 
-<h2>Developer Profile</h2>
+<h1>Developer Profile</h1>
 
-<!-- Profile Form # -->
+<!-- ============================= -->
+
+<!-- Profile -->
+
+<!-- ============================= -->
 
 <form method="POST">
     {% csrf_token %}
@@ -19,100 +23,114 @@
 
 </form>
 
+<hr>
+
+<!-- ============================= -->
+
 <!-- Repositories -->
+
+<!-- ============================= -->
 
 <h2>Repositories</h2>
 
 {% if repositories %}
 
-```
 <ul>
     {% for repo in repositories %}
-        <li>
-            <strong>{{ repo.name }}</strong>
 
-            {% if repo.language %}
-                - {{ repo.language }}
-            {% endif %}
-
-            | ⭐ {{ repo.stars }}
-            | 🍴 {{ repo.forks }}
-        </li>
-    {% endfor %}
-</ul>
 ```
+<li>
+    <strong>{{ repo.name }}</strong>
+
+    {% if repo.language %}
+        - {{ repo.language }}
+    {% endif %}
+
+    | ⭐ {{ repo.stars }}
+    | 🍴 {{ repo.forks }}
+</li>
+
+{% endfor %}
+```
+
+</ul>
 
 {% else %}
 
-```
 <p>No repositories found.</p>
-```
 
 {% endif %}
 
+<hr>
+
+<!-- ============================= -->
+
 <!-- Developer Activity -->
+
+<!-- ============================= -->
 
 <h2>Developer Activity</h2>
 
 {% if activity %}
 
-```
-<div>
-    <strong>Active Days</strong>
-    <p>{{ activity.active_days }}</p>
-</div>
+<p>
+    <strong>Active Days:</strong>
+    {{ activity.active_days }}
+</p>
 
-<div>
-    <strong>Pull Requests</strong>
-    <p>{{ activity.total_pull_requests }}</p>
-</div>
+<p>
+    <strong>Pull Requests:</strong>
+    {{ activity.total_pull_requests }}
+</p>
 
-<div>
-    <strong>Issues</strong>
-    <p>{{ activity.total_issues }}</p>
-</div>
+<p>
+    <strong>Issues:</strong>
+    {{ activity.total_issues }}
+</p>
 
-<div>
-    <strong>Consistency Score</strong>
-    <p>{{ activity.consistency_score }}</p>
-</div>
-```
+<p>
+    <strong>Consistency Score:</strong>
+    {{ activity.consistency_score }}
+</p>
 
 {% else %}
 
-```
 <p>No activity data available.</p>
-```
 
 {% endif %}
 
+<hr>
+
+<!-- ============================= -->
+
 <!-- Commit Analytics -->
+
+<!-- ============================= -->
 
 <h2>Commit Analytics</h2>
 
 {% if commit_analytics %}
 
-```
-<div>
-    <strong>Total Commits</strong>
-    <p>{{ commit_analytics.total_commits }}</p>
-</div>
+<p>
+    <strong>Total Commits:</strong>
+    {{ commit_analytics.total_commits }}
+</p>
 
-<div>
-    <strong>Active Days</strong>
-    <p>{{ commit_analytics.active_days }}</p>
-</div>
+<p>
+    <strong>Active Days:</strong>
+    {{ commit_analytics.active_days }}
+</p>
 
-<div>
-    <strong>Average Commits Per Day</strong>
-    <p>{{ commit_analytics.average_commits_per_day }}</p>
-</div>
+<p>
+    <strong>Average Commits Per Day:</strong>
+    {{ commit_analytics.average_commits_per_day }}
+</p>
 
-
-<!-- Commit Chart -->
 <h3>Commit Activity</h3>
 
-<canvas id="commitChart"></canvas>
+<div style="width: 600px; height: 300px;">
+    <canvas id="commitChart"></canvas>
+</div>
 
 {{ commit_analytics.commit_dates|json_script:"commit-dates" }}
 {{ commit_analytics.commit_counts|json_script:"commit-counts" }}
@@ -127,9 +145,6 @@
     const commitCounts = JSON.parse(
         document.getElementById("commit-counts").textContent
     );
-
-    console.log("Commit dates:", commitDates);
-    console.log("Commit counts:", commitCounts);
 
     const ctx = document.getElementById("commitChart");
 
@@ -149,6 +164,7 @@
 
         options: {
             responsive: true,
+            maintainAspectRatio: false,
 
             scales: {
                 y: {
@@ -162,13 +178,297 @@
         }
     });
 </script>
-```
 
 {% else %}
 
-```
 <p>No commit analytics available.</p>
+
+{% endif %}
+
+<hr>
+
+<!-- ============================= -->
+
+<!-- Language Analytics -->
+
+<!-- ============================= -->
+
+<h2>Language Analytics</h2>
+
+{% if language_analytics %}
+
+<p>
+    <strong>Most Used Language:</strong>
+    {{ language_analytics.most_used_language }}
+</p>
+
+<p>
+    <strong>Total Languages:</strong>
+    {{ language_analytics.total_languages }}
+</p>
+
+<ul>
+
 ```
+{% for item in language_analytics.language_data %}
+
+<li>
+    <strong>{{ item.language }}</strong>
+    -
+    {{ item.count }} repositories
+    -
+    {{ item.percentage }}%
+</li>
+
+{% endfor %}
+```
+
+</ul>
+
+{{ language_analytics.language_data|json_script:"language-data" }}
+
+{% else %}
+
+<p>No language analytics available.</p>
+
+{% endif %}
+
+<hr>
+
+<!-- ============================= -->
+
+<!-- Repository Health -->
+
+<!-- ============================= -->
+
+<h2>Repository Health</h2>
+
+{% if repository_health %}
+
+{% for item in repository_health %}
+
+<div style="
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+">
+
+```
+<h3>
+    {{ item.repository.name }}
+</h3>
+
+<h4>
+    Health Score:
+    {{ item.health.score }}/100
+</h4>
+
+<p>
+    <strong>Activity:</strong>
+    {{ item.health.activity_score }}/40
+</p>
+
+<p>
+    <strong>Popularity:</strong>
+    {{ item.health.popularity_score }}/25
+</p>
+
+<p>
+    <strong>Documentation:</strong>
+    {{ item.health.documentation_score }}/20
+</p>
+
+<p>
+    <strong>Quality:</strong>
+    {{ item.health.quality_score }}/15
+</p>
+```
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<p>No repository health data available.</p>
+
+{% endif %}
+
+<hr>
+
+<!-- ============================= -->
+
+<!-- Developer Skill Analysis -->
+
+<!-- ============================= -->
+
+<h2>Developer Skill Analysis</h2>
+
+{% if skill_analytics.skills %}
+
+<p>
+    <strong>Total Skills:</strong>
+    {{ skill_analytics.total_skills }}
+</p>
+
+{% for skill in skill_analytics.skills %}
+
+<div style="
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+">
+
+```
+<h3>
+    {{ skill.language }}
+</h3>
+
+<h4>
+    Skill Score:
+    {{ skill.score }}/100
+</h4>
+
+<p>
+    <strong>Repositories:</strong>
+    {{ skill.repositories }}
+</p>
+
+<p>
+    <strong>Commits:</strong>
+    {{ skill.commits }}
+</p>
+
+<p>
+    <strong>Stars:</strong>
+    {{ skill.stars }}
+</p>
+
+<p>
+    <strong>Forks:</strong>
+    {{ skill.forks }}
+</p>
+```
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<p>No skill analytics available.</p>
+
+{% endif %}
+
+<hr>
+
+<!-- ============================= -->
+
+<!-- Developer Productivity -->
+
+<!-- ============================= -->
+
+<h2>Developer Productivity</h2>
+
+{% if productivity_analytics %}
+
+<div style="
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+">
+
+```
+<h3>
+    Productivity Score:
+    {{ productivity_analytics.productivity_score }}/100
+</h3>
+
+<hr>
+
+<h4>Commit Activity</h4>
+
+<p>
+    <strong>Total Commits:</strong>
+    {{ productivity_analytics.total_commits }}
+</p>
+
+<p>
+    <strong>Commit Score:</strong>
+    {{ productivity_analytics.commit_score }}/30
+</p>
+
+<hr>
+
+<h4>Pull Requests</h4>
+
+<p>
+    <strong>Total Pull Requests:</strong>
+    {{ productivity_analytics.total_pull_requests }}
+</p>
+
+<p>
+    <strong>Merged Pull Requests:</strong>
+    {{ productivity_analytics.merged_pull_requests }}
+</p>
+
+<p>
+    <strong>Merge Rate:</strong>
+    {{ productivity_analytics.merge_rate }}%
+</p>
+
+<p>
+    <strong>Pull Request Score:</strong>
+    {{ productivity_analytics.pull_request_score }}/25
+</p>
+
+<p>
+    <strong>Merge Score:</strong>
+    {{ productivity_analytics.merge_score }}/20
+</p>
+
+<hr>
+
+<h4>Issue Resolution</h4>
+
+<p>
+    <strong>Total Issues:</strong>
+    {{ productivity_analytics.total_issues }}
+</p>
+
+<p>
+    <strong>Closed Issues:</strong>
+    {{ productivity_analytics.closed_issues }}
+</p>
+
+<p>
+    <strong>Issue Resolution Rate:</strong>
+    {{ productivity_analytics.issue_resolution_rate }}%
+</p>
+
+<p>
+    <strong>Issue Score:</strong>
+    {{ productivity_analytics.issue_score }}/15
+</p>
+
+<hr>
+
+<h4>Consistency</h4>
+
+<p>
+    <strong>Consistency Score:</strong>
+    {{ productivity_analytics.consistency_score }}/10
+</p>
+```
+
+</div>
+
+{% else %}
+
+<p>No productivity analytics available.</p>
 
 {% endif %}
 

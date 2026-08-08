@@ -1,14 +1,9 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
-
-from .forms import RegistrationForm
-from django.contrib.auth import authenticate, login
-
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout
-from .forms import RegistrationForm, DeveloperProfileForm
-
 from django.contrib import messages
+
+from .forms import RegistrationForm, DeveloperProfileForm
 
 from github_data.github_api import (
     sync_repositories,
@@ -17,9 +12,13 @@ from github_data.github_api import (
     sync_issues,
 )
 
-from analytics.commit_analytics import calculate_commit_analytics
 from github_data.analytics import calculate_activity
+from github_data.repository_health import calculate_repository_health
 
+from analytics.commit_analytics import calculate_commit_analytics
+from analytics.language_analytics import calculate_language_analytics
+from analytics.skill_analytics import calculate_skill_analytics
+from analytics.productivity_analytics import calculate_productivity_analytics
 
 @login_required
 def home(request):
@@ -43,15 +42,15 @@ def home(request):
     )
 
 
-
-
 def register(request):
     if request.method == "POST":
         form = RegistrationForm(request.POST)
 
         if form.is_valid():
             user = form.save(commit=False)
-            user.set_password(form.cleaned_data["password"])
+            user.set_password(
+                form.cleaned_data["password"]
+            )
             user.save()
 
             login(request, user)
@@ -60,7 +59,11 @@ def register(request):
     else:
         form = RegistrationForm()
 
-    return render(request, "register.html", {"form": form})
+    return render(
+        request,
+        "register.html",
+        {"form": form}
+    )
 
 
 def user_login(request):
@@ -81,7 +84,9 @@ def user_login(request):
         return render(
             request,
             "login.html",
-            {"error": "Invalid username or password."}
+            {
+                "error": "Invalid username or password."
+            }
         )
 
     return render(request, "login.html")
@@ -94,7 +99,6 @@ def user_logout(request):
 
 @login_required
 def profile(request):
-
     developer_profile = request.user.developerprofile
 
     if request.method == "POST":
@@ -106,7 +110,6 @@ def profile(request):
         if form.is_valid():
             form.save()
             return redirect("profile")
-
     else:
         form = DeveloperProfileForm(
             instance=developer_profile
@@ -114,12 +117,38 @@ def profile(request):
 
     repositories = developer_profile.repositories.all()
 
-    activity = calculate_activity(developer_profile)
+    # Repository Health Analysis
+    repository_health = []
 
+    for repo in repositories:
+        health = calculate_repository_health(repo)
+
+        repository_health.append({
+            "repository": repo,
+            "health": health,
+        })
+
+    # Developer Activity
+    activity = calculate_activity(
+        developer_profile
+    )
+
+    # Commit Analytics
     commit_analytics = calculate_commit_analytics(
         developer_profile
     )
 
+    # Language Analytics
+    language_analytics = calculate_language_analytics(
+        developer_profile
+    )
+    # Skill Analytics
+    skill_analytics = calculate_skill_analytics(
+    developer_profile
+    )
+    productivity_analytics = calculate_productivity_analytics(
+    developer_profile
+    )   
     return render(
         request,
         "profile.html",
@@ -128,6 +157,10 @@ def profile(request):
             "repositories": repositories,
             "activity": activity,
             "commit_analytics": commit_analytics,
+            "language_analytics": language_analytics,
+            "skill_analytics": skill_analytics,
+            "repository_health": repository_health,
+            "productivity_analytics": productivity_analytics,
         }
     )
 
@@ -153,6 +186,3 @@ def sync_github_data(request):
     )
 
     return redirect("home")
-
-
-

@@ -41,19 +41,31 @@ if GITHUB_TOKEN:
 # GITHUB API REQUEST
 # =========================================================
 
-def github_request(
-    url,
-    params=None,
-):
+def github_request(url, params=None):
     """
-    Send an authenticated request to the GitHub API.
+    Send an authenticated request to GitHub.
 
     Provides:
-    - Token authentication
+    - Environment-based token authentication
     - Request timeout
     - Rate-limit handling
-    - Basic API error handling
+    - Authentication error handling
+    - Network error handling
     """
+
+    # -----------------------------------------------------
+    # Check GitHub token
+    # -----------------------------------------------------
+
+    if not GITHUB_TOKEN:
+        print(
+            "GitHub token is not configured."
+        )
+        return None
+
+    # -----------------------------------------------------
+    # Send request
+    # -----------------------------------------------------
 
     try:
 
@@ -81,7 +93,23 @@ def github_request(
         return response.json()
 
     # -----------------------------------------------------
-    # GitHub rate limit
+    # Authentication failure
+    # -----------------------------------------------------
+
+    if response.status_code == 401:
+
+        print(
+            "GitHub authentication failed."
+        )
+
+        print(
+            "Check GITHUB_TOKEN in the .env file."
+        )
+
+        return None
+
+    # -----------------------------------------------------
+    # Rate limit / access denied
     # -----------------------------------------------------
 
     if response.status_code == 403:
@@ -95,7 +123,8 @@ def github_request(
         )
 
         print(
-            "GitHub API request denied or rate limited."
+            "GitHub API access denied "
+            "or rate limit exceeded."
         )
 
         print(
@@ -106,22 +135,6 @@ def github_request(
         print(
             "Rate limit reset timestamp:",
             reset_time,
-        )
-
-        return None
-
-    # -----------------------------------------------------
-    # Authentication failure
-    # -----------------------------------------------------
-
-    if response.status_code == 401:
-
-        print(
-            "GitHub authentication failed."
-        )
-
-        print(
-            "Check GITHUB_TOKEN in the .env file."
         )
 
         return None
@@ -209,6 +222,9 @@ def sync_repositories(developer_profile):
         developer_profile.github_username
     )
 
+    if not repositories:
+        return
+
     for repo in repositories:
 
         Repository.objects.update_or_create(
@@ -260,17 +276,16 @@ def sync_repositories(developer_profile):
 # GITHUB COMMITS
 # =========================================================
 
-def get_github_commits(
-    owner,
-    repo,
-):
+def get_github_commits(owner, repo):
 
     url = (
         f"{GITHUB_API_URL}/repos/"
         f"{owner}/{repo}/commits"
     )
 
-    return github_request(url)
+    response = github_request(url)
+
+    return response or []
 
 
 # =========================================================
@@ -285,13 +300,59 @@ def sync_commits(repository):
 
     repo_name = repository.name
 
-    commits = get_github_commits(
-        owner,
-        repo_name,
+    url = (
+        f"{GITHUB_API_URL}/repos/"
+        f"{owner}/{repo_name}/commits"
     )
 
-    if not commits:
+    try:
+
+        response = requests.get(
+            url,
+            headers=GITHUB_HEADERS,
+            timeout=15,
+        )
+
+    except requests.RequestException as error:
+
+        print(
+            "GitHub commit request failed:",
+            error,
+        )
+
         return
+
+    # -----------------------------------------------------
+    # Empty repository
+    # -----------------------------------------------------
+
+    if response.status_code == 409:
+
+        print(
+            f"Repository '{owner}/{repo_name}' "
+            "is empty. No commits to sync."
+        )
+
+        return
+
+    # -----------------------------------------------------
+    # Other errors
+    # -----------------------------------------------------
+
+    if response.status_code != 200:
+
+        print(
+            "GitHub commit request failed:",
+            response.status_code,
+        )
+
+        return
+
+    commits = response.json()
+
+    # -----------------------------------------------------
+    # Save commits
+    # -----------------------------------------------------
 
     for commit_data in commits:
 
@@ -363,10 +424,12 @@ def get_github_pull_requests(
         "state": "all",
     }
 
-    return github_request(
+    response = github_request(
         url,
         params=params,
     )
+
+    return response or []
 
 
 # =========================================================
@@ -387,10 +450,12 @@ def get_github_issues(
         "state": "all",
     }
 
-    return github_request(
+    response = github_request(
         url,
         params=params,
     )
+
+    return response or []
 
 
 # =========================================================
@@ -481,11 +546,8 @@ def sync_issues(repository):
 
     for issue in issues:
 
-        # -------------------------------------------------
-        # GitHub's Issues API also returns pull requests.
-        # Ignore those because they are stored separately.
-        # -------------------------------------------------
-
+        # GitHub's Issues API also returns
+        # pull requests.
         if "pull_request" in issue:
             continue
 

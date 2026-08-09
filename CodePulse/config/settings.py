@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     # Third party
     'rest_framework',
 
+    #security
+    'axes',
     # apps
     'accounts.apps.AccountsConfig',
     'github_data',
@@ -57,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'axes.middleware.AxesMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -144,3 +147,27 @@ MAILERS = {
 
 LOGIN_URL="/login/"
 
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1
+AXES_RESET_ON_SUCCESS = True
+
+
+
+# =========================================================
+# SECURITY SETTINGS
+# =========================================================
+
+# Protect session cookies from JavaScript access
+SESSION_COOKIE_HTTPONLY = True
+
+# Prevent cookies from being sent in most cross-site requests
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# Prevent CSRF cookie from being accessed by JavaScript
+CSRF_COOKIE_HTTPONLY = True

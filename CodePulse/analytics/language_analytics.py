@@ -1,46 +1,88 @@
-from collections import Counter
+import pandas as pd
+import numpy as np
 
 
 def calculate_language_analytics(developer_profile):
 
-    repositories = developer_profile.repositories.all()
+    repositories = (
+        developer_profile.repositories
+        .all()
+        .values("language")
+    )
 
-    languages = []
+    # Convert Django QuerySet into a list
+    data = list(repositories)
 
-    for repository in repositories:
+    # No repository data
+    if not data:
+        return {
+            "total_languages": 0,
+            "most_used_language": None,
+            "language_data": [],
+        }
 
-        if repository.language:
-            languages.append(repository.language)
+    # Create Pandas DataFrame
+    df = pd.DataFrame(data)
 
-    language_counts = Counter(languages)
+    # Remove repositories without a language
+    df = df[
+        df["language"].notna()
+        & (df["language"] != "")
+    ]
 
-    total_language_repositories = sum(language_counts.values())
+    # No valid languages
+    if df.empty:
+        return {
+            "total_languages": 0,
+            "most_used_language": None,
+            "language_data": [],
+        }
 
-    language_data = []
+    # Count repositories for each language
+    language_counts = (
+        df["language"]
+        .value_counts()
+        .reset_index()
+    )
 
-    for language, count in language_counts.most_common():
+    language_counts.columns = [
+        "language",
+        "count",
+    ]
 
-        percentage = 0
+    # Calculate total repositories
+    total_repositories = (
+        language_counts["count"].sum()
+    )
 
-        if total_language_repositories > 0:
-            percentage = round(
-                (count / total_language_repositories) * 100,
-                2
-            )
+    # Calculate percentage using NumPy
+    language_counts["percentage"] = np.round(
+        (
+            language_counts["count"]
+            / total_repositories
+        ) * 100,
+        2,
+    )
 
-        language_data.append({
-            "language": language,
-            "count": count,
-            "percentage": percentage,
-        })
+    # Convert DataFrame to Django-friendly list
+    language_data = (
+        language_counts
+        .to_dict("records")
+    )
 
-    most_used_language = None
-
-    if language_data:
-        most_used_language = language_data[0]["language"]
+    # Most used language
+    most_used_language = (
+        language_counts.iloc[0]["language"]
+    )
 
     return {
-        "total_languages": len(language_data),
-        "most_used_language": most_used_language,
-        "language_data": language_data,
+        "total_languages": len(
+            language_counts
+        ),
+
+        "most_used_language":
+            most_used_language,
+
+        "language_data":
+            language_data,
     }

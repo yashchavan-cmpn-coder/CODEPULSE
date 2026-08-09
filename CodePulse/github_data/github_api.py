@@ -1,4 +1,7 @@
+import os
+
 import requests
+from dotenv import load_dotenv
 
 from .models import (
     Repository,
@@ -8,7 +11,132 @@ from .models import (
 )
 
 
+# =========================================================
+# ENVIRONMENT
+# =========================================================
+
+load_dotenv()
+
+
+# =========================================================
+# GITHUB API CONFIGURATION
+# =========================================================
+
 GITHUB_API_URL = "https://api.github.com"
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+GITHUB_HEADERS = {
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+}
+
+if GITHUB_TOKEN:
+    GITHUB_HEADERS["Authorization"] = (
+        f"Bearer {GITHUB_TOKEN}"
+    )
+
+
+# =========================================================
+# GITHUB API REQUEST
+# =========================================================
+
+def github_request(
+    url,
+    params=None,
+):
+    """
+    Send an authenticated request to the GitHub API.
+
+    Provides:
+    - Token authentication
+    - Request timeout
+    - Rate-limit handling
+    - Basic API error handling
+    """
+
+    try:
+
+        response = requests.get(
+            url,
+            headers=GITHUB_HEADERS,
+            params=params,
+            timeout=15,
+        )
+
+    except requests.RequestException as error:
+
+        print(
+            "GitHub API request failed:",
+            error,
+        )
+
+        return None
+
+    # -----------------------------------------------------
+    # Successful response
+    # -----------------------------------------------------
+
+    if response.status_code == 200:
+        return response.json()
+
+    # -----------------------------------------------------
+    # GitHub rate limit
+    # -----------------------------------------------------
+
+    if response.status_code == 403:
+
+        remaining = response.headers.get(
+            "X-RateLimit-Remaining"
+        )
+
+        reset_time = response.headers.get(
+            "X-RateLimit-Reset"
+        )
+
+        print(
+            "GitHub API request denied or rate limited."
+        )
+
+        print(
+            "Remaining requests:",
+            remaining,
+        )
+
+        print(
+            "Rate limit reset timestamp:",
+            reset_time,
+        )
+
+        return None
+
+    # -----------------------------------------------------
+    # Authentication failure
+    # -----------------------------------------------------
+
+    if response.status_code == 401:
+
+        print(
+            "GitHub authentication failed."
+        )
+
+        print(
+            "Check GITHUB_TOKEN in the .env file."
+        )
+
+        return None
+
+    # -----------------------------------------------------
+    # Other API errors
+    # -----------------------------------------------------
+
+    print(
+        "GitHub API request failed:",
+        response.status_code,
+        response.text,
+    )
+
+    return None
 
 
 # =========================================================
@@ -17,17 +145,11 @@ GITHUB_API_URL = "https://api.github.com"
 
 def get_github_user(username):
 
-    url = f"{GITHUB_API_URL}/users/{username}"
-
-    response = requests.get(
-        url,
-        timeout=15,
+    url = (
+        f"{GITHUB_API_URL}/users/{username}"
     )
 
-    if response.status_code == 200:
-        return response.json()
-
-    return None
+    return github_request(url)
 
 
 # =========================================================
@@ -42,7 +164,10 @@ def get_github_repositories(username):
 
     while True:
 
-        url = f"{GITHUB_API_URL}/users/{username}/repos"
+        url = (
+            f"{GITHUB_API_URL}/users/"
+            f"{username}/repos"
+        )
 
         params = {
             "page": page,
@@ -51,22 +176,13 @@ def get_github_repositories(username):
             "sort": "updated",
         }
 
-        response = requests.get(
+        page_repositories = github_request(
             url,
             params=params,
-            timeout=15,
         )
 
-        if response.status_code != 200:
-            print(
-                "GitHub repository request failed:",
-                response.status_code,
-                response.text,
-            )
-
+        if page_repositories is None:
             break
-
-        page_repositories = response.json()
 
         if not page_repositories:
             break
@@ -144,22 +260,17 @@ def sync_repositories(developer_profile):
 # GITHUB COMMITS
 # =========================================================
 
-def get_github_commits(owner, repo):
+def get_github_commits(
+    owner,
+    repo,
+):
 
     url = (
         f"{GITHUB_API_URL}/repos/"
         f"{owner}/{repo}/commits"
     )
 
-    response = requests.get(
-        url,
-        timeout=15,
-    )
-
-    if response.status_code == 200:
-        return response.json()
-
-    return []
+    return github_request(url)
 
 
 # =========================================================
@@ -179,6 +290,9 @@ def sync_commits(repository):
         repo_name,
     )
 
+    if not commits:
+        return
+
     for commit_data in commits:
 
         commit_info = (
@@ -192,8 +306,7 @@ def sync_commits(repository):
 
         Commit.objects.update_or_create(
 
-            github_sha=
-                commit_data["sha"],
+            github_sha=commit_data["sha"],
 
             defaults={
 
@@ -250,16 +363,10 @@ def get_github_pull_requests(
         "state": "all",
     }
 
-    response = requests.get(
+    return github_request(
         url,
         params=params,
-        timeout=15,
     )
-
-    if response.status_code == 200:
-        return response.json()
-
-    return []
 
 
 # =========================================================
@@ -280,16 +387,10 @@ def get_github_issues(
         "state": "all",
     }
 
-    response = requests.get(
+    return github_request(
         url,
         params=params,
-        timeout=15,
     )
-
-    if response.status_code == 200:
-        return response.json()
-
-    return []
 
 
 # =========================================================
@@ -310,6 +411,9 @@ def sync_pull_requests(repository):
             repo_name,
         )
     )
+
+    if not pull_requests:
+        return
 
     for pr in pull_requests:
 
@@ -372,7 +476,18 @@ def sync_issues(repository):
         repo_name,
     )
 
+    if not issues:
+        return
+
     for issue in issues:
+
+        # -------------------------------------------------
+        # GitHub's Issues API also returns pull requests.
+        # Ignore those because they are stored separately.
+        # -------------------------------------------------
+
+        if "pull_request" in issue:
+            continue
 
         Issue.objects.update_or_create(
 
